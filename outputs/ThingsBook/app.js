@@ -297,6 +297,8 @@ function compareBooks(sortBy, a, b, keys) {
     case 'haslanguage': return (direction === 'asc' ? (a.language ? 1 : 0) - (b.language ? 1 : 0) : (b.language ? 1 : 0) - (a.language ? 1 : 0)) || bookCollator.compare(a.title, b.title);
     case 'hasyear': return (direction === 'asc' ? (a.year ? 1 : 0) - (b.year ? 1 : 0) : (b.year ? 1 : 0) - (a.year ? 1 : 0)) || bookCollator.compare(a.title, b.title);
     case 'haspages': return (direction === 'asc' ? (a.pages ? 1 : 0) - (b.pages ? 1 : 0) : (b.pages ? 1 : 0) - (a.pages ? 1 : 0)) || bookCollator.compare(a.title, b.title);
+    case 'hastags': return (direction === 'asc' ? ((a.tags && a.tags.length) ? 1 : 0) - ((b.tags && b.tags.length) ? 1 : 0) : ((b.tags && b.tags.length) ? 1 : 0) - ((a.tags && a.tags.length) ? 1 : 0)) || bookCollator.compare(a.title, b.title);
+    case 'hasnotes': return (direction === 'asc' ? (a.notes ? 1 : 0) - (b.notes ? 1 : 0) : (b.notes ? 1 : 0) - (a.notes ? 1 : 0)) || bookCollator.compare(a.title, b.title);
     case 'publisher': case 'language': case 'format': case 'filename': return text(a[field], b[field]) || bookCollator.compare(a.title, b.title);
     case 'status': return (statusRank(a) - statusRank(b)) * down || bookCollator.compare(a.title, b.title);
     case 'tags': return ((b.tags?.length || 0) - (a.tags?.length || 0)) * up || bookCollator.compare(a.title, b.title);
