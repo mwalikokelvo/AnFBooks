@@ -308,6 +308,7 @@ function compareBooks(sortBy, a, b, keys) {
     case 'hassize': return (direction === 'asc' ? (a.size ? 1 : 0) - (b.size ? 1 : 0) : (b.size ? 1 : 0) - (a.size ? 1 : 0)) || bookCollator.compare(a.title, b.title);
     case 'haslastread': return (direction === 'asc' ? (a.lastRead ? 1 : 0) - (b.lastRead ? 1 : 0) : (b.lastRead ? 1 : 0) - (a.lastRead ? 1 : 0)) || bookCollator.compare(a.title, b.title);
     case 'hascover': return (direction === 'asc' ? (a.cover ? 1 : 0) - (b.cover ? 1 : 0) : (b.cover ? 1 : 0) - (a.cover ? 1 : 0)) || bookCollator.compare(a.title, b.title);
+    case 'hassourceformat': return (direction === 'asc' ? (a.sourceFormat ? 1 : 0) - (b.sourceFormat ? 1 : 0) : (b.sourceFormat ? 1 : 0) - (a.sourceFormat ? 1 : 0)) || bookCollator.compare(a.title, b.title);
     case 'publisher': case 'language': case 'format': case 'filename': return text(a[field], b[field]) || bookCollator.compare(a.title, b.title);
     case 'status': return (statusRank(a) - statusRank(b)) * down || bookCollator.compare(a.title, b.title);
     case 'tags': return ((b.tags?.length || 0) - (a.tags?.length || 0)) * up || bookCollator.compare(a.title, b.title);
