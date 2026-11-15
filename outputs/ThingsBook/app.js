@@ -303,6 +303,7 @@ function compareBooks(sortBy, a, b, keys) {
     case 'hasprogress': return (direction === 'asc' ? (a.progress?.percent ? 1 : 0) - (b.progress?.percent ? 1 : 0) : (b.progress?.percent ? 1 : 0) - (a.progress?.percent ? 1 : 0)) || bookCollator.compare(a.title, b.title);
     case 'hasauthor': return (direction === 'asc' ? (a.author ? 1 : 0) - (b.author ? 1 : 0) : (b.author ? 1 : 0) - (a.author ? 1 : 0)) || bookCollator.compare(a.title, b.title);
     case 'hasformat': return (direction === 'asc' ? (a.format ? 1 : 0) - (b.format ? 1 : 0) : (b.format ? 1 : 0) - (a.format ? 1 : 0)) || bookCollator.compare(a.title, b.title);
+    case 'hasseriesnumber': return (direction === 'asc' ? (a.seriesNumber ? 1 : 0) - (b.seriesNumber ? 1 : 0) : (b.seriesNumber ? 1 : 0) - (a.seriesNumber ? 1 : 0)) || bookCollator.compare(a.title, b.title);
     case 'publisher': case 'language': case 'format': case 'filename': return text(a[field], b[field]) || bookCollator.compare(a.title, b.title);
     case 'status': return (statusRank(a) - statusRank(b)) * down || bookCollator.compare(a.title, b.title);
     case 'tags': return ((b.tags?.length || 0) - (a.tags?.length || 0)) * up || bookCollator.compare(a.title, b.title);
