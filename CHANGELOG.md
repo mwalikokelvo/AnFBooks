@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Library book tooltips now include tags (up to 5) when present, so users can see them at a glance without opening the detail view.
+
 ## 1.15.1 — 2026-11-13
 
 Two finished improvements from the 1 November overnight work that were left on a side branch and
