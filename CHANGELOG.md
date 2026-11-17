@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Library
+- A book's tooltip shows when it was last read.
+
+### Repairs
+- `app.js` was cut short by a direct push to `main` (commits 06a8249 and 36fbb7a, 17 November); restored in full with only the intended tooltip line kept.
+
 ## 1.15.1 — 2026-11-13
 
 Two finished improvements from the 1 November overnight work that were left on a side branch and
