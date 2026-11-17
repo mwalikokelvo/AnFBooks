@@ -58,14 +58,16 @@ jobs:
               {role: "user", content: ("PR title: " + $title + "\n\nDiff:\n" + $diff)}
             ]}' > req.json
 
-          RES=$(curl -sS --max-time 300 "$BASE/chat/completions" \
+          RES=$(curl -sSL --max-time 300 -w '\n%{http_code}' "$BASE/chat/completions" \
             -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+            -H "Accept: application/json" -H "X-GitHub-Api-Version: 2022-11-28" \
             -H "HTTP-Referer: https://github.com/$REPO" -H "X-Title: ThingsBook AI review" \
             --data @req.json)
+          CODE=${RES##*$'\n'}; RES=${RES%$'\n'*}
           TEXT=$(jq -r '.choices[0].message.content // empty' <<<"$RES" 2>/dev/null)
           USED=$(jq -r '.model // empty' <<<"$RES" 2>/dev/null)
           if [ -z "$TEXT" ]; then
-            echo "::warning::AI review skipped. Reply from $BASE: $(head -c 500 <<<"$RES")"
+            echo "::warning::AI review skipped. HTTP $CODE from $BASE: $(head -c 500 <<<"$RES")"
             exit 0
           fi
 
