@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Development
+- `core/tests/latency.rs` checks the latency budgets on a release build in CI: opening a 300-chapter
+  EPUB 2 or 3 and loading its first chapter under 150 ms, parsing a 200-entry OPDS feed under 100 ms.
+
 ## 1.15.1 — 2026-11-13
 
 Two finished improvements from the 1 November overnight work that were left on a side branch and
