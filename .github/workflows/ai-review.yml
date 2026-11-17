@@ -37,10 +37,10 @@ jobs:
           set +e -u
           if [ -n "$OPENROUTER_API_KEY" ]; then
             KEY="$OPENROUTER_API_KEY"; BASE="${BASE_URL:-https://openrouter.ai/api/v1}"
-            MODEL="${MODEL:-openrouter/free}"; LIMIT=60000
+            MODEL="${MODEL:-openrouter/free}"; LIMIT=60000; ACCEPT="application/json"
           else
             KEY="$GH_TOKEN"; BASE="https://models.github.ai/inference"
-            MODEL="openai/gpt-4.1-mini"; LIMIT=20000
+            MODEL="openai/gpt-4.1-mini"; LIMIT=20000; ACCEPT="application/vnd.github+json"
           fi
 
           gh api "repos/$REPO/pulls/$PR" -H "Accept: application/vnd.github.diff" > diff.txt || exit 0
@@ -60,7 +60,7 @@ jobs:
 
           RES=$(curl -sSL --max-time 300 -w '\n%{http_code}' "$BASE/chat/completions" \
             -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
-            -H "Accept: application/json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Accept: $ACCEPT" -H "X-GitHub-Api-Version: 2022-11-28" \
             -H "HTTP-Referer: https://github.com/$REPO" -H "X-Title: ThingsBook AI review" \
             --data @req.json)
           CODE=${RES##*$'\n'}; RES=${RES%$'\n'*}
