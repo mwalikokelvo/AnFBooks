@@ -1,0 +1,15 @@
+# Keep Cursor's index small: build output, models, books and large vendored files.
+target/
+node_modules/
+work/test-tools/
+*.onnx
+*.safetensors
+*.epub
+*.pdf
+*.sqlite
+*.db
+outputs/ThingsBook/vendor/
+outputs/ThingsBook/cmaps/
+outputs/ThingsBook/standard_fonts/
+outputs/ThingsBook/wasm/
+outputs/ThingsBook/pdf.worker.mjs
