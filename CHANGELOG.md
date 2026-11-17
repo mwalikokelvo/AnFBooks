@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### For builders
+- **One rulebook for every assistant:** `AGENTS.md` now holds the engineering rules (pure Rust core,
+  no telemetry, no polling, replace in place, speed budgets) and who works where. `CLAUDE.md`,
+  `GEMINI.md` and Copilot point to it. A `verifier` agent runs the checks before a pull request, and CI
+  now fails on Rust lint warnings.
+
 ## 1.15.1 — 2026-11-13
 
 Two finished improvements from the 1 November overnight work that were left on a side branch and
