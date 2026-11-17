@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Library
+- A book's tooltip shows when it was last read.
+
+### Repairs
+- `app.js` was cut short by a direct push to `main` (commits 06a8249 and 36fbb7a, 17 November); restored in full with only the intended tooltip line kept.
+
 ### For builders
 - **One rulebook for every assistant:** `AGENTS.md` now holds the engineering rules (pure Rust core,
   no telemetry, no polling, replace in place, speed budgets) and who works where. `CLAUDE.md`,
