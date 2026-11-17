@@ -26,9 +26,11 @@ async function request(value,fetcher=fetch){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),TIMEOUT);
  try{
   const response=await fetcher(call.url,{method:call.method,headers:call.headers,body:call.body,redirect:'error',credentials:'omit',cache:'no-store',signal:controller.signal});
-  if(Number(response.headers?.get?.('content-length'))>LIMIT){await response.body?.cancel?.();return {error:'The sync server sent too much data.'};}
-  const reply=await response.text();
-  if(reply.length>LIMIT)return {error:'The sync server sent too much data.'};
+  // Read at most LIMIT bytes: a chunked reply without a length is cut off, not buffered whole.
+  if(Number(response.headers?.get?.('content-length'))>LIMIT){controller.abort();return {error:'The sync server sent too much data.'};}
+  const parts=[];let size=0;
+  if(response.body){const reader=response.body.getReader();for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>LIMIT){controller.abort();return {error:'The sync server sent too much data.'};}parts.push(value);}}
+  const reply=Buffer.concat(parts.map(p=>Buffer.from(p.buffer,p.byteOffset,p.byteLength))).toString('utf8');
   if(!response.ok)return {error:MESSAGES[response.status]||'The sync server could not save or read this position.'};
   let parsed={};try{parsed=reply?JSON.parse(reply):{};}catch{return {error:'The sync server sent something that is not KOReader sync data.'};}
   return {value:parsed&&typeof parsed==='object'&&!Array.isArray(parsed)?parsed:{}};

@@ -55,7 +55,13 @@ const nodeMd5 = data => crypto.createHash('md5').update(data).digest('hex');
   // When to offer a jump.
   const now = Date.now(), local = {percent: 20, updated: now - 60000};
   const remote = (extra = {}) => ({document: doc, progress: '/body/DocFragment[30]', percentage: 0.6, device: 'Kobo', device_id: 'other', timestamp: Math.floor(now / 1000), ...extra});
-  assert.deepStrictEqual(K.decide('EPUB', local, remote(), 'abc123', 100), {location: 29, percent: 60, device: 'Kobo'});
+  const jump = K.decide('EPUB', local, remote(), 'abc123', 100);
+  assert.deepStrictEqual({...jump, percent: Math.round(jump.percent)}, {location: 29, percent: 60, device: 'Kobo'});
+  assert.ok(Math.abs(K.decide('EPUB', local, remote({percentage: 0.704}), 'abc123', 100).percent - 70.4) < 1e-9, 'exact percent kept (the floor below which nothing is sent)');
+  const {timestamp, ...noTime} = remote();
+  assert.strictEqual(K.decide('EPUB', local, noTime, 'abc123', 100).location, 29, 'a server without times is compared by percentage');
+  assert.strictEqual(K.decide('EPUB', local, {...noTime, percentage: 0.1}, 'abc123', 100), null, 'and still not when behind');
+  assert.strictEqual(K.decide('EPUB', local, remote({timestamp: 'soon'}), 'abc123', 100).location, 29, 'an unreadable time counts as none');
   assert.strictEqual(K.decide('EPUB', local, remote({device_id: 'abc123'}), 'abc123', 100), null, 'own device ignored');
   assert.strictEqual(K.decide('EPUB', local, remote({percentage: 0.2}), 'abc123', 100), null, 'not further along');
   assert.strictEqual(K.decide('EPUB', local, remote({timestamp: Math.floor((now - 120000) / 1000)}), 'abc123', 100), null, 'older than this device');
@@ -93,7 +99,7 @@ const nodeMd5 = data => crypto.createHash('md5').update(data).digest('hex');
   for (const bad of [{...base, server: 'http://x.org', action: 'auth'}, {...base, key: 'short', action: 'auth'}, {...base, user: 'a\nb', action: 'auth'}, {...base, action: 'get', document: '../users'}, {...base, action: 'delete', document: doc}, {...put, percentage: 2}, {...put, device_id: 'x y'}])
     assert.throws(() => desktop.build(bad));
 
-  const reply = (status, text, headers = {}) => ({ok: status >= 200 && status < 300, status, headers: new Map(Object.entries(headers)), text: async () => text});
+  const reply = (status, text, headers = {}) => new Response(text, {status, headers});
   let seen;
   assert.deepStrictEqual(await desktop.request({...base, action: 'get', document: doc}, async (url, options) => { seen = options; return reply(200, '{"percentage":0.3}'); }), {value: {percentage: 0.3}});
   assert.strictEqual(seen.redirect, 'error'); assert.strictEqual(seen.credentials, 'omit'); assert.ok(seen.signal);
@@ -102,6 +108,11 @@ const nodeMd5 = data => crypto.createHash('md5').update(data).digest('hex');
   assert.match((await desktop.request({...base, action: 'auth'}, async () => reply(500, '{}'))).error, /could not/);
   assert.match((await desktop.request({...base, action: 'auth'}, async () => reply(200, 'x'.repeat(70000)))).error, /too much/);
   assert.match((await desktop.request({...base, action: 'auth'}, async () => reply(200, '{}', {'content-length': '999999'}))).error, /too much/);
+  // A reply without a length that never ends: reading stops just past 64 KB and the request is aborted.
+  let pulled = 0, aborted = false;
+  const endless = (url, options) => { options.signal.addEventListener('abort', () => { aborted = true; }); return new Response(new ReadableStream({pull(c) { pulled++; c.enqueue(new Uint8Array(16 * 1024)); }})); };
+  assert.match((await desktop.request({...base, action: 'auth'}, endless)).error, /too much/);
+  assert.ok(pulled <= 8 && aborted, `stopped after ${pulled} chunks, aborted: ${aborted}`);
   assert.match((await desktop.request({...base, action: 'auth'}, async () => reply(200, '<html>'))).error, /not KOReader/);
   assert.match((await desktop.request({...base, action: 'auth'}, async () => { throw new Error('ECONNRESET'); })).error, /Could not reach/);
   let called = false;

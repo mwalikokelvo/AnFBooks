@@ -26,15 +26,23 @@ async function main() {
   await page.evaluate(() => upload({preventDefault(){}}));
   const id = await until(page, () => books[0]?.id);
   // Stand-in for the Android bridge (the reply comes back through ThingsKosync.receive, as from Java):
-  // records each request; the server holds page 9 (location 8) from a Kobo, newer than this device.
-  await page.evaluate(() => { window.syncCalls = []; window.ThingsBookAndroid = {kosyncRequest(id, json) { const value = JSON.parse(json); syncCalls.push(value); const reply = value.action === 'get' ? {value:{document:value.document, progress:'9', percentage:0.7, device:'Kobo', device_id:'kobo1', timestamp:Math.floor(Date.now() / 1000) + 5}} : {value:{}}; setTimeout(() => ThingsKosync.receive(id, JSON.stringify(reply)), 20); }}; });
+  // records each request. syncServer.get decides the reply to a lookup: a position object, 'error', or
+  // nothing; syncServer.delay is how long the server takes.
+  await page.evaluate(() => { window.syncCalls = []; window.syncServer = {get:null, delay:20}; window.ThingsBookAndroid = {kosyncRequest(id, json) { const value = JSON.parse(json); syncCalls.push(value); const answer = value.action !== 'get' ? {value:{}} : syncServer.get === 'error' ? {error:'The sync server could not save or read this position.'} : {value:syncServer.get ? {document:value.document, ...syncServer.get} : {}}; setTimeout(() => ThingsKosync.receive(id, JSON.stringify(answer)), syncServer.delay); }}; });
+  const reopen = async () => { await page.evaluate(() => syncCalls.length = 0); await page.evaluate(id => readBook(id), id); await until(page, () => ThingsReader.context()?.pdf && !ThingsReader.context().loading); };
+  const close = () => page.evaluate(() => { $('reader-dialog').close(); return closeReader(); });
+  const offerInPage = () => [...document.querySelectorAll('button')].find(b => /from Kobo/.test(b.textContent))?.textContent || null;
+  const offerText = () => page.evaluate(offerInPage);
 
   // Off: opening a book makes no request.
   await page.evaluate(id => readBook(id), id);
   await until(page, () => ThingsReader.context()?.pdf && !ThingsReader.context().loading);
   await page.waitForTimeout(500);
   assert.equal(await page.evaluate(() => syncCalls.length), 0, 'no requests while sync is off');
-  await page.evaluate(() => { $('reader-dialog').close(); return closeReader(); });
+  await close();
+  // This device's saved position is from now; the Kobo's (below) is a little newer, and older than the next opening.
+  const savedAt = await page.evaluate(id => books.find(b => b.id === id).progress.updated, id);
+  await page.waitForTimeout(1200);
 
   // Turn it on through the dialog.
   await page.evaluate(() => [...document.querySelectorAll('button.nav-item')].find(b => b.textContent === 'KOReader sync').click());
@@ -51,25 +59,54 @@ async function main() {
   assert.ok(!stored.includes('secret') && !stored.includes('reader'), 'settings are sealed, no plain account or password');
   await page.evaluate(() => document.getElementById('kosync-dialog').close());
 
-  // Open: asks with the KOReader ID, offers page 9 from the Kobo, jumping goes there.
-  await page.evaluate(id => readBook(id), id);
-  await until(page, () => ThingsReader.context()?.pdf && !ThingsReader.context().loading);
-  const offer = await until(page, () => [...document.querySelectorAll('#reader-dialog button')].find(b => /from Kobo/.test(b.textContent))?.textContent);
-  assert.equal(offer, 'Go to 70% (from Kobo)');
+  // Open: asks with the KOReader ID, offers 70.4% from the Kobo (compared with the position saved before
+  // this opening, not the reader's refreshed copy), sends nothing that would overwrite it, and jumps there.
+  await page.evaluate(ts => { syncServer.get = {progress:'9', percentage:0.704, device:'Kobo', device_id:'kobo1', timestamp:ts}; }, Math.floor(savedAt / 1000) + 1);
+  await reopen();
+  assert.equal(await until(page, offerInPage), 'Go to 70% (from Kobo)');
   const get = await page.evaluate(() => syncCalls.find(c => c.action === 'get'));
   assert.equal(get.document, koreaderId(pdf), 'KOReader binary ID of the original file');
+  await page.evaluate(() => ThingsReader.flush());
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(() => syncCalls.filter(c => c.action === 'put').length), 0, 'the restored, older place is not sent over the Kobo\'s');
   await page.evaluate(() => [...document.querySelectorAll('#reader-dialog button')].find(b => /from Kobo/.test(b.textContent)).click());
   await until(page, () => ThingsReader.context()?.location === 8 && !ThingsReader.context().loading);
 
   // Reading on sends the new page (closing the book sends at once).
   await page.evaluate(() => ThingsReader.flush());
-  await page.evaluate(() => { $('reader-dialog').close(); return closeReader(); });
-  const put = await until(page, () => syncCalls.filter(c => c.action === 'put').at(-1));
+  await close();
+  let put = await until(page, () => syncCalls.filter(c => c.action === 'put').at(-1));
   assert.equal(put.document, koreaderId(pdf)); assert.equal(put.progress, '9'); assert.equal(put.device, 'ThingsBook');
   assert.match(put.device_id, /^[a-f0-9]{32}$/);
 
+  // Closing the book while the server is still answering: the late reply offers nothing anywhere.
+  await page.evaluate(() => { syncServer.get = {progress:'12', percentage:1, device:'Kobo', device_id:'kobo1', timestamp:Math.floor(Date.now() / 1000) + 60}; syncServer.delay = 1500; });
+  await reopen();
+  await close();
+  await page.waitForTimeout(2000);
+  assert.equal(await offerText(), null, 'no offer from a book that was closed');
+
+  // The lookup fails: positions are still sent.
+  await page.evaluate(() => { syncServer.get = 'error'; syncServer.delay = 20; });
+  await reopen();
+  await page.evaluate(() => ThingsReader.jump(3));
+  await page.evaluate(() => ThingsReader.flush());
+  put = await until(page, () => syncCalls.filter(c => c.action === 'put').at(-1));
+  assert.equal(put.progress, '4', 'sent although the lookup failed');
+  await close();
+
+  // Locking the library while reading sends the final place first.
+  await page.evaluate(() => { syncServer.get = null; });
+  await reopen();
+  await until(page, () => syncCalls.some(c => c.action === 'get'));
+  await page.waitForTimeout(200);
+  await page.evaluate(() => { syncCalls.length = 0; return ThingsReader.jump(6); });
+  await page.evaluate(() => lock());
+  put = await until(page, () => syncCalls.filter(c => c.action === 'put').at(-1));
+  assert.equal(put.progress, '7', 'final place sent on lock');
+
   assert.deepEqual(errors, []);
   await context.close();
-  console.log('PASS: KOReader sync checks the account, keeps no password, offers the newer page from another device and sends the new page.');
+  console.log('PASS: KOReader sync checks the account, keeps no password, offers the newer page from another device without overwriting it, sends the new page, ignores late replies for closed books, still sends when the lookup fails, and sends the last place on lock.');
 }
 main().catch(e => { console.error(e); process.exitCode = 1; }).finally(() => { cleanup(profile); setTimeout(() => process.exit(), 500).unref(); });
