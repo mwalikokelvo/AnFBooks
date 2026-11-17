@@ -58,5 +58,5 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('core/Cargo.lock') }}
       - name: Test
         run: cargo test --locked
-      - name: Latency budgets (release build: EPUB < 150 ms, OPDS < 100 ms)
+      - name: "Latency budgets (release build: EPUB < 150 ms, OPDS < 100 ms)"
         run: cargo test --release --locked --test latency -- --nocapture
