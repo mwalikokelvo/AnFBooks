@@ -34,7 +34,7 @@ jobs:
           BASE_URL: ${{ vars.AI_REVIEW_BASE_URL }}
           MODEL: ${{ vars.AI_REVIEW_MODEL }}
         run: |
-          set -uo pipefail
+          set +e -u
           if [ -n "$OPENROUTER_API_KEY" ]; then
             KEY="$OPENROUTER_API_KEY"; BASE="${BASE_URL:-https://openrouter.ai/api/v1}"
             MODEL="${MODEL:-openrouter/free}"; LIMIT=60000
@@ -62,10 +62,10 @@ jobs:
             -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
             -H "HTTP-Referer: https://github.com/$REPO" -H "X-Title: ThingsBook AI review" \
             --data @req.json)
-          TEXT=$(jq -r '.choices[0].message.content // empty' <<<"$RES")
-          USED=$(jq -r '.model // empty' <<<"$RES")
+          TEXT=$(jq -r '.choices[0].message.content // empty' <<<"$RES" 2>/dev/null)
+          USED=$(jq -r '.model // empty' <<<"$RES" 2>/dev/null)
           if [ -z "$TEXT" ]; then
-            echo "::warning::AI review skipped: $(jq -c '.error // .' <<<"$RES" | head -c 500)"
+            echo "::warning::AI review skipped. Reply from $BASE: $(head -c 500 <<<"$RES")"
             exit 0
           fi
 
