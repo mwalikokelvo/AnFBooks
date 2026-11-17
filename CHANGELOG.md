@@ -4,7 +4,7 @@
 
 ### Tooling
 - **Free AI review on pull requests** (`.github/workflows/ai-review.yml`): reviews each PR with
-  OpenRouter's free models (or GitHub Models when no key is set) so reviews keep coming when
+  OpenRouter's free models so reviews keep coming when
   Cursor Bugbot's quota runs out.
 
 ## 1.15.1 — 2026-11-13
