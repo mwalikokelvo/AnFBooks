@@ -25,7 +25,7 @@ with exe.open('rb') as stream:
 assert h.hexdigest()==digest(payload),'Embedded runtime differs from the verified bundle'
 source=out/f'ThingsBook-Independent-Source-{version}.zip'
 with zipfile.ZipFile(source,'w',zipfile.ZIP_DEFLATED,strict_timestamps=False) as archive:
- for name in ('main.cjs','catalog.cjs','zlibrary.cjs','native-core.cjs','voice-catalog.cjs','preload.cjs','custom-voice.py','narration_text.py','package.json','package-lock.json','icon.ico'):
+ for name in ('main.cjs','catalog.cjs','zlibrary.cjs','native-core.cjs','voice-catalog.cjs','kosync.cjs','preload.cjs','custom-voice.py','narration_text.py','package.json','package-lock.json','icon.ico'):
   archive.write(desktop/name,'work/thingsbook-desktop/'+name)
  for p in (desktop/'native').glob('*.cs'):archive.write(p,'work/thingsbook-desktop/native/'+p.name)
  for p in (desktop/'native-licenses').rglob('*'):

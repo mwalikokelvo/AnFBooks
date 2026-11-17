@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### New
+- KOReader sync: share EPUB and PDF reading positions with KOReader through a Progress sync server
+  (library menu › KOReader sync). Off until you enter a server; when another device is further along,
+  the reader offers to jump there. Only the book's KOReader ID, page or chapter and percentage are sent;
+  the password is not stored. The Windows and Android apps make the request (not the browser version).
+
 ## 1.15.1 — 2026-11-13
 
 Two finished improvements from the 1 November overnight work that were left on a side branch and

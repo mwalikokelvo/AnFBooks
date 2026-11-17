@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
   private static final class SharedFile{Uri uri;String name;long size;long expires;boolean listed;}
   private final Map<String,SharedFile> shared=new LinkedHashMap<>();
   private final java.util.concurrent.ExecutorService providerWorker=java.util.concurrent.Executors.newSingleThreadExecutor();
+  private final java.util.concurrent.ExecutorService syncWorker=java.util.concurrent.Executors.newSingleThreadExecutor();
   private ValueCallback<Uri[]> picker;
   private boolean closing;
   private boolean pdfActive;
@@ -151,6 +152,11 @@ public class MainActivity extends Activity {
       final long dispatchEpoch=provider.generation();providerWorker.execute(()->{String answer;try{answer=new JSONObject().put("value",provider.call(new JSONObject(json),dispatchEpoch)).toString();}catch(Exception e){try{answer=new JSONObject().put("error",e instanceof IOException?e.getMessage():"Provider request could not finish.").toString();}catch(Exception ignored){answer="{}";}}final String result=answer;runOnUiThread(()->{if(!closing)web.evaluateJavascript("window.ThingsProviderBridge && window.ThingsProviderBridge.receive("+JSONObject.quote(id)+","+JSONObject.quote(result)+")",null);});});
     }
 
+    // KOReader progress sync (vendor/kosync.js): only to the https server the owner entered.
+    @JavascriptInterface public void kosyncRequest(String id,String json){
+      if(id==null||!id.matches("[a-zA-Z0-9-]{1,80}")||json==null||json.length()>4000)return;
+      syncWorker.execute(()->{String answer;try{answer=KoreaderSync.request(new JSONObject(json));}catch(Exception e){answer="{\"error\":\"Invalid sync request.\"}";}final String result=answer;runOnUiThread(()->{if(!closing)web.evaluateJavascript("window.ThingsKosync && window.ThingsKosync.receive("+JSONObject.quote(id)+","+JSONObject.quote(result)+")",null);});});
+    }
     @JavascriptInterface public String protectAccess(String secret) { return DeviceAccess.protect(secret); }
     @JavascriptInterface public String revealAccess(String wrapped) { return DeviceAccess.reveal(wrapped); }
     @JavascriptInterface public boolean acquireSpeechFocus(){return audioManager!=null&&speechFocus!=null&&audioManager.requestAudioFocus(speechFocus)==android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED;}
@@ -200,5 +206,5 @@ public class MainActivity extends Activity {
   }
   @Override protected void onResume(){super.onResume();stopped=false;if(web!=null)web.evaluateJavascript("window.nativeSpeechReady && window.nativeSpeechReady()",null);}
   @Override protected void onStop(){super.onStop();stopped=true;if(!backgroundRunning&&picker==null&&!personalPicker&&staged==null&&!pdfActive&&web!=null){if(provider!=null)provider.cancel();if(personal!=null)personal.stop(true);web.evaluateJavascript("window.nativeLock && window.nativeLock()",null);}}
-  @Override protected void onDestroy(){closing=true;try{unregisterReceiver(noisy);}catch(Exception ignored){}if(audioManager!=null&&speechFocus!=null)audioManager.abandonAudioFocusRequest(speechFocus);stopService(new Intent(this,ListeningService.class));if(current.get()==this)current.clear();if(personal!=null)personal.close();if(provider!=null)provider.cancel();providerWorker.shutdownNow();if(picker!=null)picker.onReceiveValue(null);localFiles.cancelTransfer();if(speech!=null){speech.stop();speech.shutdown();}if(web!=null)web.destroy();super.onDestroy();}
+  @Override protected void onDestroy(){closing=true;try{unregisterReceiver(noisy);}catch(Exception ignored){}if(audioManager!=null&&speechFocus!=null)audioManager.abandonAudioFocusRequest(speechFocus);stopService(new Intent(this,ListeningService.class));if(current.get()==this)current.clear();if(personal!=null)personal.close();if(provider!=null)provider.cancel();providerWorker.shutdownNow();syncWorker.shutdownNow();if(picker!=null)picker.onReceiveValue(null);localFiles.cancelTransfer();if(speech!=null){speech.stop();speech.shutdown();}if(web!=null)web.destroy();super.onDestroy();}
 }

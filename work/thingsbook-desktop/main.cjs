@@ -6,6 +6,7 @@ const {randomUUID}=require('node:crypto');
 const ORIGIN='thingsbook://library';
 const {NativeCore}=require('./native-core.cjs');
 const {voiceCatalog}=require('./voice-catalog.cjs');
+const kosync=require('./kosync.cjs');
 const nativeCore=new NativeCore(app.isPackaged?path.join(process.resourcesPath,'thingsbook-core.exe'):path.join(__dirname,'native/thingsbook-core.exe'));
 protocol.registerSchemesAsPrivileged([{scheme:'thingsbook',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true,corsEnabled:true}}]);
 const profile=process.env.THINGSBOOK_TEST_PROFILE || path.join(process.env.LOCALAPPDATA || app.getPath('appData'),'ThingsBookDesktop');
@@ -88,6 +89,7 @@ function speechProcess(mode,payload){return new Promise((resolve,reject)=>{
 let voicesCache;
 function configureIpc(){
  ipcMain.handle('thingsbook:provider',(event,value)=>{if(!trusted(event)||!value||JSON.stringify(value).length>10000)throw new Error('Invalid provider request');return zlibraryProvider.call(value);});
+ ipcMain.handle('thingsbook:kosync',(event,value)=>{if(!trusted(event)||!value||JSON.stringify(value).length>4000)throw new Error('Invalid sync request');return kosync.request(value);});
  ipcMain.on('thingsbook:provider-cancel',event=>{if(trusted(event))zlibraryProvider.cancel();});
  ipcMain.handle('thingsbook:protect-access',(event,secret)=>{
   if(!trusted(event)||typeof secret!=='string'||!secret.length||secret.length>4096||!safeStorage.isEncryptionAvailable()||process.platform!=='win32')throw new Error('Windows device protection is unavailable');

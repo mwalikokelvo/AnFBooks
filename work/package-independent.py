@@ -13,7 +13,7 @@ with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6,strict_tim
   bundle.write(p,relative)
  for p in sorted((desktop/'web').rglob('*')):
   if p.is_file():bundle.write(p,'resources/app/web/'+p.relative_to(desktop/'web').as_posix())
- for name in ('main.cjs','catalog.cjs','zlibrary.cjs','native-core.cjs','voice-catalog.cjs','preload.cjs','custom-voice.py','narration_text.py','package.json','icon.ico'):bundle.write(desktop/name,'resources/app/'+name)
+ for name in ('main.cjs','catalog.cjs','zlibrary.cjs','native-core.cjs','voice-catalog.cjs','kosync.cjs','preload.cjs','custom-voice.py','narration_text.py','package.json','icon.ico'):bundle.write(desktop/name,'resources/app/'+name)
  bundle.write(desktop/'native/ProviderProtection.exe','resources/ProviderProtection.exe')
  bundle.write(desktop/'native/SpeechBridge.exe','resources/SpeechBridge.exe')
  bundle.write(desktop/'native/thingsbook-core.exe','resources/thingsbook-core.exe')
