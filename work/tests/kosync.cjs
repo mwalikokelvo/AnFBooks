@@ -132,5 +132,13 @@ const nodeMd5 = data => crypto.createHash('md5').update(data).digest('hex');
   assert.match((await desktop.request({...base, server: 'http://x.org', action: 'auth'}, async () => { called = true; })).error, /https/);
   assert.strictEqual(called, false, 'an invalid request never reaches the network');
 
+  // moved(): only a new chapter or page, or more than one point, counts as reading on.
+  const at = (location, percent) => ({location, percent});
+  assert.strictEqual(K.moved({start: at(3, 40), progress: at(3, 41)}), false, 'layout recomputing the percent by 1 is not movement');
+  assert.strictEqual(K.moved({start: at(3, 40), progress: at(3, 40.6)}), false, 'a rounding change is not movement');
+  assert.strictEqual(K.moved({start: at(3, 40), progress: at(3, 42.5)}), true, 'scrolling on in the chapter is movement');
+  assert.strictEqual(K.moved({start: at(3, 40), progress: at(4, 40.5)}), true, 'a new chapter or page is movement');
+  assert.strictEqual(K.moved({start: {}, progress: at(0, 0.5)}), false, 'no saved place and no movement');
+
   console.log('kosync: all checks passed');
 })().catch(error => { console.error(error); process.exit(1); });

@@ -77,7 +77,10 @@ const ThingsKosync = (() => {
     return {location: Math.max(0, location), percent, device: String(remote.device || 'another device').slice(0, 60)};
   }
 
-  if (typeof document === 'undefined') return {md5, userKey, documentId, server, payload, decide, chapterOf, DEFAULT_SERVER};
+  // Did the reader really move since opening? A new chapter or page, or more than one point of the book: the reader
+  // recomputes the percentage after layout, and that small change alone must not count as reading on.
+  const moved = c => Math.floor(Number(c.progress?.location) || 0) !== Math.floor(Number(c.start?.location) || 0) || Math.abs((Number(c.progress?.percent) || 0) - (Number(c.start?.percent) || 0)) > 1;
+  if (typeof document === 'undefined') return {md5, userKey, documentId, server, payload, decide, chapterOf, moved, DEFAULT_SERVER};
 
   // In the app.
   const pending = new Map(); let settingsCache, current = null, timer = null, generation = 0;
@@ -95,7 +98,6 @@ const ThingsKosync = (() => {
   }
   async function store(value) { const record = value ? await sealJSON(value) : null; await transaction(['settings'], tx => value ? tx.objectStore('settings').put(record, 'kosync') : tx.objectStore('settings').delete('kosync')); settingsCache = {key, value}; }
 
-  const moved = c => (Number(c.progress?.location) || 0) !== (Number(c.start?.location) || 0) || (Number(c.progress?.percent) || 0) !== (Number(c.start?.percent) || 0);
   // `leaving`: the book is closing. Before the opening lookup answers, a position is then sent only if the reader
   // moved since opening, so a restored place never overwrites a newer one unasked.
   function push(leaving) {
