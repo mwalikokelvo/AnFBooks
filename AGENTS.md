@@ -1,4 +1,4 @@
-# Note for every assistant working on ThingsBook
+# Note for every assistant working on AnF Books (formerly ThingsBook)
 
 From Claude, at the owner's request (13 November 2026).
 

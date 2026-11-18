@@ -1,4 +1,4 @@
-"""Serve only ThingsBook's static UI on a fixed loopback origin."""
+"""Serve only AnF Books' static UI on a fixed loopback origin."""
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -49,10 +49,10 @@ if __name__ == '__main__':
     try:
         server = ThreadingHTTPServer((HOST, PORT), Handler)
     except OSError:
-        print(f'Port {PORT} is already in use. If ThingsBook is running, open {URL}.')
+        print(f'Port {PORT} is already in use. If AnF Books is running, open {URL}.')
         print('Otherwise, close the program using this port and try again.')
         sys.exit(1)
-    print(f'ThingsBook is ready at {URL}\nKeep this window open while reading. Press Ctrl+C to stop.')
+    print(f'AnF Books is ready at {URL}\nKeep this window open while reading. Press Ctrl+C to stop.')
     if '--no-browser' not in sys.argv:
         webbrowser.open(URL)
     try:

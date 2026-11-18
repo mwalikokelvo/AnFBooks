@@ -136,7 +136,7 @@ async function start(){
   }catch{return new Response('Not found',{status:404});}
  });
  configureIpc();
- window=new BrowserWindow({width:1280,height:880,minWidth:760,minHeight:620,show:false,title:'ThingsBook',backgroundColor:'#f5f1e9',icon:path.join(__dirname,'icon.ico'),webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,webviewTag:false,devTools:!!process.env.THINGSBOOK_TEST_PROFILE}});
+ window=new BrowserWindow({width:1280,height:880,minWidth:760,minHeight:620,show:false,title:'AnF Books',backgroundColor:'#f5f1e9',icon:path.join(__dirname,'icon.ico'),webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,webviewTag:false,devTools:!!process.env.THINGSBOOK_TEST_PROFILE}});
  Menu.setApplicationMenu(null);
  const ses=window.webContents.session;
  ses.setPermissionRequestHandler((wc,permission,callback)=>callback(wc===window.webContents&&ownUrl(wc.getURL())&&['persistent-storage','fullscreen'].includes(permission)));
@@ -186,7 +186,7 @@ async function start(){
 }
 if(!app.requestSingleInstanceLock())app.quit();else{
  app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore();window.show();window.focus();}});
- app.whenReady().then(start).catch(error=>{dialog.showErrorBox('ThingsBook could not open',error.message);quitting=true;app.quit();});
+ app.whenReady().then(start).catch(error=>{dialog.showErrorBox('AnF Books could not open',error.message);quitting=true;app.quit();});
  app.on('before-quit',()=>{zlibraryProvider.cancel();cancelSpeech();if(voiceListJob){voiceListJob.kill();voiceListJob=null;}nativeCore.cancel();});
  app.on('window-all-closed',()=>app.quit());
 }

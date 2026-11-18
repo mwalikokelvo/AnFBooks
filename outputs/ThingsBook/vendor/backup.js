@@ -28,9 +28,9 @@ const ThingsBackup = (() => {
   const encoder = new TextEncoder(), decoder = new TextDecoder('utf-8', {fatal:true});
 
   function failure(code, message) { const error = new Error(message); error.code = code; return error; }
-  const invalid = () => failure('invalid', 'This is not a valid ThingsBook encrypted backup.');
+  const invalid = () => failure('invalid', 'This is not a valid AnF Books encrypted backup.');
   const truncated = () => failure('truncated', 'This backup file is incomplete. Copy the whole file again and retry.');
-  const newer = () => failure('newer', 'This backup was made by a newer ThingsBook. Update the app, then restore again.');
+  const newer = () => failure('newer', 'This backup was made by a newer AnF Books. Update the app, then restore again.');
 
   function b64(buffer) { const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer); let s = ''; for (let i = 0; i < bytes.length; i += 32768) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 32768)); return btoa(s); }
   function unb64(text) { if (typeof text !== 'string') throw invalid(); let s; try { s = atob(text); } catch { throw invalid(); } const result = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) result[i] = s.charCodeAt(i); return result; }

@@ -85,7 +85,7 @@ public class MainActivity extends Activity {
         try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*");i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,params.getMode()==FileChooserParams.MODE_OPEN_MULTIPLE);startActivityForResult(i,1);}
         catch(Exception e){picker.onReceiveValue(null);picker=null;notice("A document picker could not be opened.");}return true;
       }
-      @Override public boolean onJsConfirm(WebView w,String url,String message,JsResult result){new AlertDialog.Builder(MainActivity.this).setTitle("ThingsBook").setMessage(message).setPositiveButton("Continue",(d,which)->result.confirm()).setNegativeButton("Cancel",(d,which)->result.cancel()).setOnCancelListener(d->result.cancel()).show();return true;}
+      @Override public boolean onJsConfirm(WebView w,String url,String message,JsResult result){new AlertDialog.Builder(MainActivity.this).setTitle("AnF Books").setMessage(message).setPositiveButton("Continue",(d,which)->result.confirm()).setNegativeButton("Cancel",(d,which)->result.cancel()).setOnCancelListener(d->result.cancel()).show();return true;}
     });
     audioManager=(android.media.AudioManager)getSystemService(AUDIO_SERVICE);speechFocus=new android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN).setAudioAttributes(new android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_MEDIA).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build()).setWillPauseWhenDucked(true).setOnAudioFocusChangeListener(change->{if(change<0){if(speech!=null)speech.stop();mediaCommand("pause");}}).build();
     if(android.os.Build.VERSION.SDK_INT>=33)registerReceiver(noisy,new android.content.IntentFilter(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY),android.content.Context.RECEIVER_NOT_EXPORTED);else registerReceiver(noisy,new android.content.IntentFilter(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY));
@@ -98,7 +98,7 @@ public class MainActivity extends Activity {
   private void receive(Intent intent){
     if(intent==null)return;String action=intent.getAction();List<Uri> uris=new ArrayList<>();
     if(Intent.ACTION_VIEW.equals(action)&&intent.getData()!=null)uris.add(intent.getData());
-    else if(Intent.ACTION_SEND.equals(action)){Uri u=intent.getParcelableExtra(Intent.EXTRA_STREAM);if(u!=null)uris.add(u);else if(intent.hasExtra(Intent.EXTRA_TEXT))notice("ThingsBook imports shared files; this share contained only text.");}
+    else if(Intent.ACTION_SEND.equals(action)){Uri u=intent.getParcelableExtra(Intent.EXTRA_STREAM);if(u!=null)uris.add(u);else if(intent.hasExtra(Intent.EXTRA_TEXT))notice("AnF Books imports shared files; this share contained only text.");}
     else if(Intent.ACTION_SEND_MULTIPLE.equals(action)){ArrayList<Uri> list=intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);if(list!=null)uris.addAll(list);}
     if(uris.isEmpty())return;
     synchronized(shared){

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Name
+- ThingsBook is now **AnF Books**: the window and app titles, the Android app name and share-sheet entry,
+  messages, the KOReader device name for new sync setups, backup and notes file names, and the release
+  files (`AnF-Books-Independent-<version>.exe`, `AnF-Books-Android-<version>.apk`). It installs over
+  ThingsBook as before: the Android app ID, signing key, storage, settings and the `.thingsbook` backup
+  format are unchanged, so the library, backups and voice pack carry over.
+
 ### New
 - `window.whatWasIReading()` answers "What was I reading?" in one sentence (the book on the Continue reading card),
   for a voice assistant or a script. From Grok.

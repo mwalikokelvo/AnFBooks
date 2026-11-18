@@ -1,85 +1,96 @@
-# ThingsBook
+# AnF Books
 
-ThingsBook is a private, local-first reading and listening app for Windows and Android. It imports PDF, EPUB, TXT, Kindle (MOBI/AZW3), Word, OpenDocument, RTF, FictionBook, comic, Markdown and web-page books, keeps the library on the device, supports encrypted backup and restore, and provides reading, annotation, research, OCR, and narration tools.
+AnF Books is a private reading and listening app for Windows and Android. Your books, notes and
+reading positions stay on your own device, encrypted. Nothing is sent anywhere unless you choose to.
 
-## Current release
+AnF Books was called ThingsBook up to version 1.15.1. It is the same app: install it over
+ThingsBook as before, and your library, backups and voice pack carry over.
 
-The latest release is **ThingsBook 1.15.1**: the Windows EXE and the Android APK (signed with the original key, so it installs over earlier versions) are on the [GitHub Releases page](https://github.com/mwalikokelvo/ThingsBook/releases), with checksums; they are not committed to Git. `CHANGELOG.md` lists what changed in each version.
+## What it does
 
-Highlights include:
+- **Reads almost any book:** PDF (up to 500 MB, scanned pages included), EPUB, TXT, Kindle
+  (MOBI/AZW3), Word, OpenDocument, RTF, FictionBook, comics (.cbz), Markdown and saved web pages.
+  DRM-protected books are refused, never unlocked.
+- **Keeps the library private:** everything is encrypted on the device and locked behind your
+  password. Encrypted backups move a library between devices, and older backups still restore.
+- **Reads aloud:** continuous narration with the system voices or your own private personal voices,
+  and it keeps going with the screen off.
+- **Organises the library your way:** shelves you can rename and delete, dozens of ways to sort
+  (last opened, progress, time left, series, rating, publisher, file name and more), duplicate
+  detection on import, and a tooltip on each book showing its progress, size, pages, publisher,
+  shelf, when you added it and when you last read it.
+- **Syncs your place with KOReader:** EPUB and PDF reading positions go to and from a KOReader
+  Progress sync server you choose (library menu › Library tools & backups › KOReader sync). It is
+  off until you enter a server, only the book's KOReader ID, page and percentage are sent, and the
+  password is not stored.
+- **Helps you study:** bookmarks, highlights, notes, search across books (PDF text included),
+  offline text recognition for scans, cross-book links, comparisons, flashcards and citations.
+- **Finds new books:** Project Gutenberg and OPDS catalogues.
 
-- independent Windows desktop app and matching Android app;
-- encrypted local library and backward-compatible encrypted backups;
-- continuous narration, system voices, and optional locally installed personal voices;
-- PDF page-and-transcript view with offline OCR for scanned pages;
-- EPUB/TXT reading layouts, scrolling, paging, bookmarks, highlights, notes, and search;
-- cross-book links, comparison tools, flashcards, citations, and reading reflections;
-- Project Gutenberg discovery and an optional user-authenticated provider integration.
+## Install
 
-No private books, backups, recordings, personal voice packs, model weights, account sessions, or Android signing material are included in this repository.
+Download the latest Windows EXE or Android APK from the
+[Releases page](https://github.com/mwalikokelvo/ThingsBook/releases). Each release lists checksums.
 
-## Working on this repository (assistants included)
+On Android, install the new APK over the existing app. Do not uninstall first: that deletes the
+private library on the phone. Update every device before moving a library with a backup.
 
-Read `AGENTS.md` first: work on a branch, and commit to `main` only when the owner asks or after the
+`CHANGELOG.md` lists what changed in each version, and `Start-here.txt` sums up the current release.
+
+## Build from source
+
+Run the quick checks on any computer (Linux, macOS or Windows) from the repository root:
+
+```
+node work/run-tests.cjs            # every test this computer can run; the rest are listed as skipped
+node work/run-tests.cjs --list     # what would run or be skipped
+```
+
+The browser tests need Playwright: `npm install --prefix work/test-tools playwright@1.63.0`, then
+`node work/test-tools/node_modules/playwright/cli.js install chromium`.
+
+The apps are built on a Windows PC with Node, Rust, the .NET Framework compiler and the Android
+tools installed:
+
+```powershell
+python work\build-apps.py windows
+python work\build-apps.py android
+```
+
+A release is one command, which sets the version everywhere, runs the tests, builds both apps and
+writes checksums and notes to `outputs/`:
+
+```powershell
+python work\release.py 1.16.0            # add --push to push main and the tag
+```
+
+Pushing a `v<version>` tag also builds and publishes the release on GitHub
+(`.github/workflows/release.yml`). The APK is built only when the repository holds the original
+signing key as secrets. Personal voice packs are never bundled into a GitHub build, because the
+repository and its releases are public.
+
+## Where things are
+
+- `outputs/ThingsBook/` — the app itself (shared by Windows and Android) and the Android project.
+- `work/thingsbook-desktop/` — the Windows desktop shell and its native helpers.
+- `core/` — the Rust core (search, storage, personal voices).
+- `work/tests/` — the regression tests. `work/build-apps.py` and `work/release.py` build and release.
+
+These folders keep their old names so existing builds and installs keep working.
+
+## Contributing
+
+Read `AGENTS.md` first. Work on a branch, and change `main` only when the owner asks or after the
 tests, the Tests workflow and a check in the app are all green.
 
-## Repository layout
+## Privacy
 
-- `outputs/ThingsBook/` — authoritative shared web application and platform assets.
-- `work/thingsbook-desktop/` — independent Windows desktop shell and native helpers.
-- `work/build-apps.py` — maintained Windows and Android packaging entry point.
-- `work/tests/` — release regression and integration checks.
-- `core/` — Rust/UniFFI native-core foundation and personal-voice runtime source.
-- `work/vendor-foliate.py` — re-vendors foliate-js's MIT-licensed MOBI/KF8 and FB2 parsers (`vendor/foliate-mobi.js`, `vendor/foliate-fb2.js`), used to convert DRM-free Kindle and FictionBook books to EPUB on import.
-- `outputs/ThingsBook/vendor/mammoth.browser.min.js` — mammoth.js 1.13.0 (BSD-2-Clause, npm `mammoth`, sha256 `92914a3708cfdf1e62cb553d1856a7fedab21da83d8ee82845de2f897b368cab`), loaded only when a Word (.docx) book is imported and converted to EPUB.
-- `outputs/ThingsBook/vendor/marked.umd.js` — marked 18.0.14 (MIT, npm `marked`, sha256 `21568877a938d2c4e7d74e27f18e60da96bb73a68809610ca39216e1efebae62`), loaded only when a Markdown file is imported; license in `vendor/MARKED-LICENSE.txt`.
-- `Start-here.txt` — current release summary, limitations, and update guidance (`CHANGELOG.md` has the full history).
-
-## Build
-
-Use a consistent new version in `work/thingsbook-desktop/package.json`, preserve the existing Android application identity and signing key outside this repository, and run from the repository root:
-
-```powershell
-C:\Python314\python.exe work\build-apps.py windows
-C:\Python314\python.exe work\build-apps.py android
-```
-
-Then run the relevant checks and release verifier before distributing either artifact. Do not uninstall the Android app during an upgrade because uninstalling removes its private on-device library.
-
-For a quick check on any platform (Linux, macOS or Windows), run the portable regression suite from the repository root. It runs every test that needs only Node and lists the Electron, browser and Windows-only tests as skipped, with the reason:
-
-```
-node work/run-tests.cjs            # run everything portable
-node work/run-tests.cjs research   # run tests whose name contains "research"
-node work/run-tests.cjs --list     # show what would run or be skipped
-```
-
-This does not replace the Windows runtime checks or the release verifier.
-
-### Making a release
-
-On a Windows PC with Node, Rust, the .NET Framework compiler and the Android tools in place, one command sets the version everywhere, dates the changelog, runs the tests, builds the EXE and the signed APK, writes checksums and notes to `outputs/`, and commits and tags the release:
-
-```powershell
-python work\release.py 1.13.0            # add --push to push main and the tag
-python work\release.py 1.13.0 --skip-android
-```
-
-To build your private Android voices into the APK, add `--voice-pack "D:\path\to\pack.zip"`. On first launch, when no personal voices are installed, the app installs the bundled pack through the same checks as a pack chosen by hand. Keep the pack outside the repository, or in the ignored `private-voices/` folder; the build refuses a pack that git could commit. Never bundle it in a GitHub build: the repository and its releases are public. Anyone given that APK also gets the voices.
-
-`python work/set-version.py <version>` changes only the version numbers. Pushing a `v<version>` tag also runs `.github/workflows/release.yml`, which builds on GitHub's Windows runner and publishes a GitHub release. It always builds the EXE. It builds the APK only when the `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD` repository secrets hold the original signing key.
-
-## Project status
-
-Release 1.15.1 is the latest release (see `CHANGELOG.md`). Whole-book reading with the screen off is covered by `work/tests/endurance-browser.cjs`, but the broader Unified v5 rebuild is still in progress. Native Android storage/search migration, semantic search, private sync, precise EPUB CFI annotations, and parts of the native-shell roadmap remain unfinished. See `Start-here.txt` for the current release boundary.
-
-## Privacy and security
-
-- Libraries and credentials stay local unless the user explicitly exports or downloads something.
-- Provider sessions use platform protection and are excluded from backups and source archives.
-- Personal voice recordings and prepared voice packs are private data and must never be committed.
-- DRM or access-control bypass is not part of the project.
+- Libraries and credentials stay on the device unless you export or download something yourself.
+- No analytics or tracking. The app only contacts servers you set up (catalogues, a KOReader sync
+  server) or sign in to.
+- No private books, backups, recordings, voice packs or signing keys are in this repository.
 
 ## License
 
-No project-wide open-source license has been granted. Third-party components retain their own licenses in the included vendor and license files.
+No project-wide open-source license has been granted. Third-party components keep their own
+licenses, included in the vendor and license files.

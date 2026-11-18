@@ -13,7 +13,7 @@ if($LASTEXITCODE){throw 'The Windows voice helper failed to compile.'}
 python (Join-Path $PSScriptRoot 'package-independent.py')
 if($LASTEXITCODE){throw 'Bundling the independent runtime failed.'}
 $version=(Get-Content -LiteralPath (Join-Path $desktopRoot 'package.json') -Raw | ConvertFrom-Json).version
-$output=Join-Path $taskRoot "outputs/ThingsBook-Independent-$version.exe"
+$output=Join-Path $taskRoot "outputs/AnF-Books-Independent-$version.exe"
 & $compiler /nologo /target:winexe /platform:anycpu /optimize+ /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll ("/out:"+$output) ("/win32icon:"+(Join-Path $desktopRoot 'icon.ico')) ("/resource:"+(Join-Path $PSScriptRoot 'thingsbook-independent-runtime.zip')+",thingsbook.runtime.zip") (Join-Path $desktopRoot 'native/IndependentLauncher.cs')
 if($LASTEXITCODE){throw 'The independent Windows EXE failed to compile.'}
 Write-Output "Independent Windows EXE: $output"

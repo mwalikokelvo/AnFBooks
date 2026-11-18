@@ -19,7 +19,7 @@ raw=next((s.split('report=',1)[1] for s in lines if s.startswith('INSTRUMENTATIO
 if raw is None:raise SystemExit('No final device report; inspect retained instrumentation log.')
 report=json.loads(raw);report['adb_exit_code']=code
 version=json.loads((root/'work/thingsbook-desktop/package.json').read_text())['version']
-apk=root/('outputs/ThingsBook-Android-'+version+'.apk')
+apk=root/('outputs/AnF-Books-Android-'+version+'.apk')
 installed=subprocess.run([str(adb),'-s','R5CR61381RX','shell','dumpsys','package','com.thingsbook.library'],capture_output=True,text=True,check=True).stdout
 if 'versionName='+version not in installed:raise SystemExit('Installed Android version does not match selected APK version.')
 report['version']=version

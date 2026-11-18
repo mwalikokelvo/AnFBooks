@@ -150,14 +150,14 @@ const ThingsKosync = (() => {
     e.preventDefault(); const address = server(fields.server.value), user = fields.user.value.trim();
     if (!address) { status.textContent = 'Enter the server\'s https address.'; return; }
     if (!user || /[\u0000-\u001f]/.test(user) || !fields.password.value) { status.textContent = 'Enter the username and password of your sync account.'; return; }
-    const old = await settings(), value = {server: address, user, key: userKey(fields.password.value), device: fields.device.value.trim().slice(0, 100) || 'ThingsBook', deviceId: old?.deviceId || crypto.randomUUID().replace(/-/g, '')};
+    const old = await settings(), value = {server: address, user, key: userKey(fields.password.value), device: fields.device.value.trim().slice(0, 100) || 'AnF Books', deviceId: old?.deviceId || crypto.randomUUID().replace(/-/g, '')};
     fields.password.value = ''; save.disabled = true; status.textContent = 'Checking your account…';
     try { await request('auth', value); await store(value); status.textContent = 'Saved. Positions sync the next time you open a book.'; }
     catch (error) { status.textContent = error.message || 'Could not reach the sync server.'; } finally { save.disabled = false; }
   };
   off.onclick = async () => { try { await store(null); current = null; generation++; status.textContent = 'KOReader sync is off.'; } catch { status.textContent = 'Could not change this setting.'; } };
   const openButton = el('button', 'nav-item', 'KOReader sync'); openButton.type = 'button';
-  openButton.onclick = async () => { if (!key) return; const s = await settings(); fields.server.value = s?.server || DEFAULT_SERVER; fields.user.value = s?.user || ''; fields.password.value = ''; fields.device.value = s?.device || 'ThingsBook'; status.textContent = s ? `On for ${s.user}.` : 'Off.'; dialog.showModal(); };
+  openButton.onclick = async () => { if (!key) return; const s = await settings(); fields.server.value = s?.server || DEFAULT_SERVER; fields.user.value = s?.user || ''; fields.password.value = ''; fields.device.value = s?.device || 'AnF Books'; status.textContent = s ? `On for ${s.user}.` : 'Off.'; dialog.showModal(); };
   // With the other library menu actions, inside "Library tools & backups" (library-ui.js builds it before this loads).
   const tools = document.querySelector('.library-tools-content');
   if (tools) tools.insertBefore(openButton, tools.querySelector(':scope > .mobile-actions')); else document.getElementById('reading-filter')?.after(openButton);

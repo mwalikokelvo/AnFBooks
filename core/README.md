@@ -1,4 +1,4 @@
-# ThingsBook native core checkpoint
+# AnF Books native core checkpoint
 
 This core is compiled and tested on Windows x64. Windows 1.8.0 embeds the
 thingsbook-core private stdio worker for in-memory EPUB/TXT full-text search.
