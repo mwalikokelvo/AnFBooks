@@ -49,28 +49,38 @@ const ThingsKosync = (() => {
   function server(value) {
     try { const u = new URL(String(value || '').trim()); if (u.protocol !== 'https:' || u.username || u.password || u.search || u.hash || u.href.length > 500) return null; return u.href.replace(/\/+$/, ''); } catch { return null; }
   }
-  // What this device sends: KOReader's page number for PDF, its chapter XPointer for EPUB.
-  function payload(format, progress, document, settings) {
+  // What this device sends: KOReader's page number for PDF, its chapter XPointer for EPUB. `fragments` maps each
+  // ThingsBook chapter to KOReader's DocFragment number (KOReader also counts non-linear spine items).
+  function payload(format, progress, document, settings, fragments) {
     const percent = Math.max(0, Math.min(100, Number(progress?.percent) || 0)), location = Math.max(0, Math.floor(Number(progress?.location) || 0));
-    return {document, progress: format === 'PDF' ? String(location + 1) : `/body/DocFragment[${location + 1}]`, percentage: Math.round(percent * 100) / 10000, device: settings.device, device_id: settings.deviceId};
+    return {document, progress: format === 'PDF' ? String(location + 1) : `/body/DocFragment[${fragments?.[location] || location + 1}]`, percentage: Math.round(percent * 100) / 10000, device: settings.device, device_id: settings.deviceId};
+  }
+  // The chapter holding KOReader's DocFragment n: the last chapter at or before it (a non-linear fragment, such as a
+  // cover, falls back to the chapter before it, or the first one).
+  function chapterOf(n, fragments) {
+    if (!fragments?.length) return n - 1;
+    let found = 0; fragments.forEach((f, i) => { if (f <= n) found = i; }); return found;
   }
   // Where to go when another device is further along and more recent; null when staying put.
-  function decide(format, local, remote, deviceId, count) {
-    if (!remote || !HEX32.test(remote.document || '') || remote.device_id === deviceId) return null;
+  function decide(format, local, remote, deviceId, count, fragments, document) {
+    if (!remote || remote.device_id === deviceId) return null;
+    // Some servers leave `document` out; a reply naming another book is ignored.
+    const doc = remote.document == null || remote.document === '' ? null : String(remote.document);
+    if (doc != null && (!HEX32.test(doc) || (document && doc !== document))) return null;
     // Servers that leave out the time are compared by percentage alone, as KOReader's own client does.
     const percent = Number(remote.percentage) * 100, when = remote.timestamp == null ? NaN : Number(remote.timestamp) * 1000;
     if (!Number.isFinite(percent) || percent < 0 || percent > 100) return null;
     if (percent <= (Number(local?.percent) || 0) + 0.5 || (Number.isFinite(when) && when <= (Number(local?.updated) || 0))) return null;
     const max = Math.max(0, (Number(count) || 1) - 1), text = String(remote.progress || '');
     const page = format === 'PDF' && /^\d{1,7}$/.test(text) ? Number(text) - 1 : null, fragment = format === 'EPUB' && /^\/body\/DocFragment\[(\d{1,6})\]/.exec(text);
-    const location = Math.min(max, page ?? (fragment ? Number(fragment[1]) - 1 : Math.floor(percent / 100 * (max + 1))));
+    const location = Math.min(max, page ?? (fragment ? chapterOf(Number(fragment[1]), fragments) : Math.floor(percent / 100 * (max + 1))));
     return {location: Math.max(0, location), percent, device: String(remote.device || 'another device').slice(0, 60)};
   }
 
-  if (typeof document === 'undefined') return {md5, userKey, documentId, server, payload, decide, DEFAULT_SERVER};
+  if (typeof document === 'undefined') return {md5, userKey, documentId, server, payload, decide, chapterOf, DEFAULT_SERVER};
 
   // In the app.
-  const pending = new Map(); let settingsCache, current = null, timer = null;
+  const pending = new Map(); let settingsCache, current = null, timer = null, generation = 0;
   function send(value) {
     if (window.ThingsBookDesktop?.kosync) return window.ThingsBookDesktop.kosync(value).then(r => { if (r?.error) throw new Error(r.error); return r?.value || {}; });
     if (!window.ThingsBookAndroid?.kosyncRequest) return Promise.reject(new Error('Use the Windows or Android app to sync with KOReader.'));
@@ -85,22 +95,28 @@ const ThingsKosync = (() => {
   }
   async function store(value) { const record = value ? await sealJSON(value) : null; await transaction(['settings'], tx => value ? tx.objectStore('settings').put(record, 'kosync') : tx.objectStore('settings').delete('kosync')); settingsCache = {key, value}; }
 
-  function push() {
-    clearTimeout(timer); timer = null; const c = current; if (!c?.waiting || !c.ready || (Number(c.progress?.percent) || 0) < c.floor) return; c.waiting = false; c.lastPush = Date.now();
-    request('put', c.settings, payload(c.format, c.progress, c.document, c.settings)).catch(() => {});
+  const moved = c => (Number(c.progress?.location) || 0) !== (Number(c.start?.location) || 0) || (Number(c.progress?.percent) || 0) !== (Number(c.start?.percent) || 0);
+  // `leaving`: the book is closing. Before the opening lookup answers, a position is then sent only if the reader
+  // moved since opening, so a restored place never overwrites a newer one unasked.
+  function push(leaving) {
+    clearTimeout(timer); timer = null; const c = current; if (!c?.waiting || (!c.ready && !(leaving && moved(c))) || (Number(c.progress?.percent) || 0) < c.floor) return; c.waiting = false; c.lastPush = Date.now();
+    request('put', c.settings, payload(c.format, c.progress, c.document, c.settings, c.fragments)).catch(() => {});
   }
   // A book was opened in the reader (fire and forget: sync never blocks reading).
   async function opened(book, source) {
-    push(); current = null; offerButton?.remove();
+    push(true); current = null; offerButton?.remove(); const open = ++generation;
+    const fragments = ThingsReader.context()?.epub?.chapters?.map(chapter => chapter.fragment);
     try {
-      const s = await settings(); if (!s || !['EPUB', 'PDF'].includes(book.format) || !source) return;
-      const c = {bookId: book.id, format: book.format, settings: s, document: await documentId(source), progress: book.progress, waiting: false, lastPush: 0, ready: false, floor: 0};
+      const s = await settings(); if (open !== generation || !s || !['EPUB', 'PDF'].includes(book.format) || !source) return;
+      const c = {bookId: book.id, format: book.format, settings: s, document: await documentId(source), progress: book.progress, waiting: false, lastPush: 0, ready: false, floor: 0, fragments, start: {location: book.progress?.location, percent: book.progress?.percent}};
+      // A later opening, a close or turning sync off while this one waited wins.
+      if (open !== generation) return;
       current = c;
       try {
         const remote = await request('get', s, {document: c.document}), context = ThingsReader.context();
         if (current !== c || context?.id !== c.bookId) return;
         // The book's position as saved before this opening: opening refreshes the reader's own copy to now.
-        const target = decide(c.format, book.progress, remote, s.deviceId, context.count);
+        const target = decide(c.format, book.progress, remote, s.deviceId, context.count, c.fragments, c.document);
         if (target) { c.floor = target.percent; offer(c, target); }
       } finally { if (current === c) { c.ready = true; push(); } }
     } catch {}
@@ -118,7 +134,7 @@ const ThingsKosync = (() => {
     if (!ThingsReader.active() || Date.now() - c.lastPush > 10000) return push();
     if (!timer) timer = setTimeout(push, 10000 - (Date.now() - c.lastPush));
   }
-  function closed() { push(); current = null; offerButton?.remove(); }
+  function closed() { push(true); current = null; generation++; offerButton?.remove(); }
   function clear() { closed(); settingsCache = null; }
 
   const dialog = el('dialog', 'sanctuary-dialog discovery-dialog'); dialog.id = 'kosync-dialog';
@@ -137,10 +153,12 @@ const ThingsKosync = (() => {
     try { await request('auth', value); await store(value); status.textContent = 'Saved. Positions sync the next time you open a book.'; }
     catch (error) { status.textContent = error.message || 'Could not reach the sync server.'; } finally { save.disabled = false; }
   };
-  off.onclick = async () => { try { await store(null); current = null; status.textContent = 'KOReader sync is off.'; } catch { status.textContent = 'Could not change this setting.'; } };
-  const open = el('button', 'nav-item', 'KOReader sync'); open.type = 'button';
-  open.onclick = async () => { if (!key) return; const s = await settings(); fields.server.value = s?.server || DEFAULT_SERVER; fields.user.value = s?.user || ''; fields.password.value = ''; fields.device.value = s?.device || 'ThingsBook'; status.textContent = s ? `On for ${s.user}.` : 'Off.'; dialog.showModal(); };
-  document.getElementById('reading-filter')?.after(open);
+  off.onclick = async () => { try { await store(null); current = null; generation++; status.textContent = 'KOReader sync is off.'; } catch { status.textContent = 'Could not change this setting.'; } };
+  const openButton = el('button', 'nav-item', 'KOReader sync'); openButton.type = 'button';
+  openButton.onclick = async () => { if (!key) return; const s = await settings(); fields.server.value = s?.server || DEFAULT_SERVER; fields.user.value = s?.user || ''; fields.password.value = ''; fields.device.value = s?.device || 'ThingsBook'; status.textContent = s ? `On for ${s.user}.` : 'Off.'; dialog.showModal(); };
+  // With the other library menu actions, inside "Library tools & backups" (library-ui.js builds it before this loads).
+  const tools = document.querySelector('.library-tools-content');
+  if (tools) tools.insertBefore(openButton, tools.querySelector(':scope > .mobile-actions')); else document.getElementById('reading-filter')?.after(openButton);
   return {md5, userKey, documentId, server, payload, decide, receive, opened, saved, closed, clear};
 })();
 if (typeof window !== 'undefined') window.ThingsKosync = ThingsKosync;

@@ -51,6 +51,12 @@ const nodeMd5 = data => crypto.createHash('md5').update(data).digest('hex');
   assert.deepStrictEqual(K.payload('PDF', {percent: 10, location: 0}, doc, settings).progress, '1');
   assert.strictEqual(K.payload('PDF', {percent: 150, location: -3}, doc, settings).percentage, 1);
   assert.strictEqual(K.payload('EPUB', {}, doc, settings).progress, '/body/DocFragment[1]');
+  // EPUB chapters numbered as KOReader does: a non-linear cover is DocFragment[1], so chapter 0 is [2].
+  const fragments = [2, 4, 5];
+  assert.strictEqual(K.payload('EPUB', {location: 0}, doc, settings, fragments).progress, '/body/DocFragment[2]');
+  assert.strictEqual(K.payload('EPUB', {location: 1}, doc, settings, fragments).progress, '/body/DocFragment[4]');
+  assert.deepStrictEqual([1, 2, 3, 4, 5, 9].map(n => K.chapterOf(n, fragments)), [0, 0, 0, 1, 2, 2], 'a non-linear fragment falls back to the chapter before it');
+  assert.strictEqual(K.chapterOf(7, undefined), 6, 'no map: one fragment per chapter');
 
   // When to offer a jump.
   const now = Date.now(), local = {percent: 20, updated: now - 60000};
@@ -66,6 +72,13 @@ const nodeMd5 = data => crypto.createHash('md5').update(data).digest('hex');
   assert.strictEqual(K.decide('EPUB', local, remote({percentage: 0.2}), 'abc123', 100), null, 'not further along');
   assert.strictEqual(K.decide('EPUB', local, remote({timestamp: Math.floor((now - 120000) / 1000)}), 'abc123', 100), null, 'older than this device');
   assert.strictEqual(K.decide('EPUB', local, null, 'abc123', 100), null, 'nothing on the server');
+  assert.strictEqual(K.decide('EPUB', local, remote({progress: '/body/DocFragment[4]'}), 'abc123', 100, fragments).location, 1, 'EPUB jump maps KOReader\'s fragment to the chapter');
+  const { document: _omit, ...noDocument } = remote();
+  assert.strictEqual(K.decide('EPUB', local, noDocument, 'abc123', 100, null, doc).location, 29, 'a server that leaves out the document is accepted');
+  assert.strictEqual(K.decide('EPUB', local, remote({document: ''}), 'abc123', 100, null, doc).location, 29, 'an empty document counts as left out');
+  assert.strictEqual(K.decide('EPUB', local, remote({document: 'b'.repeat(32)}), 'abc123', 100, null, doc), null, 'a reply naming another book is ignored');
+  assert.strictEqual(K.decide('EPUB', local, remote({document: 'not-an-id'}), 'abc123', 100, null, doc), null, 'a malformed document is ignored');
+  assert.strictEqual(K.decide('EPUB', local, remote(), 'abc123', 100, null, doc).location, 29, 'the same book is accepted');
   assert.strictEqual(K.decide('EPUB', local, {}, 'abc123', 100), null, 'empty server reply');
   assert.strictEqual(K.decide('EPUB', local, remote({percentage: 1.5}), 'abc123', 100), null, 'impossible percentage');
   assert.strictEqual(K.decide('EPUB', local, remote(), 'abc123', 10).location, 9, 'clamped to the last chapter');

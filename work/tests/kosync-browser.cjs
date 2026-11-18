@@ -28,7 +28,7 @@ async function main() {
   // Stand-in for the Android bridge (the reply comes back through ThingsKosync.receive, as from Java):
   // records each request. syncServer.get decides the reply to a lookup: a position object, 'error', or
   // nothing; syncServer.delay is how long the server takes.
-  await page.evaluate(() => { window.syncCalls = []; window.syncServer = {get:null, delay:20}; window.ThingsBookAndroid = {kosyncRequest(id, json) { const value = JSON.parse(json); syncCalls.push(value); const answer = value.action !== 'get' ? {value:{}} : syncServer.get === 'error' ? {error:'The sync server could not save or read this position.'} : {value:syncServer.get ? {document:value.document, ...syncServer.get} : {}}; setTimeout(() => ThingsKosync.receive(id, JSON.stringify(answer)), syncServer.delay); }}; });
+  await page.evaluate(() => { window.syncCalls = []; window.syncServer = {get:null, delay:20}; window.ThingsBookAndroid = {kosyncRequest(id, json) { const value = JSON.parse(json); syncCalls.push(value); const answer = value.action !== 'get' ? {value:{}} : syncServer.get === 'error' ? {error:'The sync server could not save or read this position.'} : {value:syncServer.get ? {...(syncServer.noDocument ? {} : {document:value.document}), ...syncServer.get} : {}}; setTimeout(() => ThingsKosync.receive(id, JSON.stringify(answer)), syncServer.delay); }}; });
   const reopen = async () => { await page.evaluate(() => syncCalls.length = 0); await page.evaluate(id => readBook(id), id); await until(page, () => ThingsReader.context()?.pdf && !ThingsReader.context().loading); };
   const close = () => page.evaluate(() => { $('reader-dialog').close(); return closeReader(); });
   const offerInPage = () => [...document.querySelectorAll('button')].find(b => /from Kobo/.test(b.textContent))?.textContent || null;
@@ -85,6 +85,51 @@ async function main() {
   await close();
   await page.waitForTimeout(2000);
   assert.equal(await offerText(), null, 'no offer from a book that was closed');
+  assert.equal(await page.evaluate(() => syncCalls.filter(c => c.action === 'put').length), 0, 'closing unmoved before the reply sends nothing');
+  // Moving and closing before the reply: the final page is still sent.
+  await reopen();
+  await page.evaluate(() => ThingsReader.jump(2));
+  await page.evaluate(() => ThingsReader.flush());
+  await close();
+  put = await until(page, () => syncCalls.filter(c => c.action === 'put').at(-1));
+  assert.equal(put.progress, '3', 'final page sent although the lookup had not answered');
+  await page.waitForTimeout(1700);
+
+  // A server that leaves out the document field still offers its newer position.
+  await page.evaluate(() => { syncServer.get = {progress:'11', percentage:0.95, device:'Kobo', device_id:'kobo1', timestamp:Math.floor(Date.now() / 1000) + 60}; syncServer.noDocument = true; syncServer.delay = 20; });
+  await reopen();
+  assert.equal(await until(page, offerInPage), 'Go to 95% (from Kobo)');
+  await close();
+  await page.evaluate(() => { syncServer.noDocument = false; syncServer.get = null; });
+  await page.waitForTimeout(500); // the reader dialog's own close event closes the book again a moment later
+
+  // Two openings racing: the slower, earlier one must not take over from the book opened after it.
+  const race = await page.evaluate(async () => {
+    syncCalls.length = 0; let release; const gate = new Promise(r => { release = r; });
+    const slow = {size:4096, read:async (b, e) => { await gate; return new Uint8Array(e - b).fill(1); }}, fast = {size:4096, read:async (b, e) => new Uint8Array(e - b).fill(2)};
+    const first = ThingsKosync.opened({id:'race-a', format:'PDF', progress:{percent:1, location:0}}, slow);
+    await ThingsKosync.opened({id:'race-b', format:'PDF', progress:{percent:1, location:0}}, fast);
+    release(); await first; await new Promise(r => setTimeout(r, 100));
+    ThingsKosync.saved('race-b', {progress:{percent:5, location:2, updated:Date.now()}});
+    await new Promise(r => setTimeout(r, 100)); ThingsKosync.closed();
+    return syncCalls.map(c => [c.action, c.document, c.progress]);
+  });
+  const fastId = koreaderId(Buffer.alloc(4096, 2));
+  assert.deepEqual(race, [['get', fastId, undefined], ['put', fastId, '3']], 'only the later book is looked up and synced');
+
+  // EPUB: KOReader counts every spine item, so a non-linear cover shifts the chapter numbers it uses.
+  const epub = await page.evaluate(() => {
+    const enc = s => new TextEncoder().encode(s), page = t => enc(`<html xmlns="http://www.w3.org/1999/xhtml"><body><h1>${t}</h1><p>${t} text.</p></body></html>`);
+    const opf = '<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Spine</dc:title></metadata><manifest>' + ['cover', 'one', 'notes', 'two'].map(n => `<item id="${n}" href="${n}.xhtml" media-type="application/xhtml+xml"/>`).join('') + '</manifest><spine><itemref idref="cover" linear="no"/><itemref idref="missing"/><itemref idref="one"/><itemref idref="notes" linear="no"/><itemref idref="two"/></spine></package>';
+    const book = ReaderCore.epub(ThingsArchiveLib.zipSync({'mimetype':enc('application/epub+zip'), 'META-INF/container.xml':enc('<container><rootfiles><rootfile full-path="book.opf"/></rootfiles></container>'), 'book.opf':enc(opf), 'cover.xhtml':page('Cover'), 'one.xhtml':page('One'), 'notes.xhtml':page('Notes'), 'two.xhtml':page('Two')}).buffer);
+    const fragments = book.chapters.map(c => c.fragment), settings = {device:'ThingsBook', deviceId:'abc'};
+    return {titles: book.chapters.map(c => c.title), fragments, sent: ThingsKosync.payload('EPUB', {location:1, percent:50}, 'a'.repeat(32), settings, fragments).progress,
+      jump: ThingsKosync.decide('EPUB', {percent:10, updated:0}, {progress:'/body/DocFragment[4]', percentage:0.9, device_id:'kobo1'}, 'abc', fragments.length, fragments).location};
+  });
+  assert.deepEqual(epub, {titles:['One', 'Two'], fragments:[2, 4], sent:'/body/DocFragment[4]', jump:1}, 'chapters use KOReader\'s DocFragment numbers both ways');
+
+  // The menu entry sits with the other library tools.
+  assert.equal(await page.evaluate(() => !!document.querySelector('.library-tools-content > button.nav-item') && [...document.querySelectorAll('.library-tools-content > button')].some(b => b.textContent === 'KOReader sync')), true, 'KOReader sync is inside Library tools & backups');
 
   // The lookup fails: positions are still sent.
   await page.evaluate(() => { syncServer.get = 'error'; syncServer.delay = 20; });
@@ -107,6 +152,6 @@ async function main() {
 
   assert.deepEqual(errors, []);
   await context.close();
-  console.log('PASS: KOReader sync checks the account, keeps no password, offers the newer page from another device without overwriting it, sends the new page, ignores late replies for closed books, still sends when the lookup fails, and sends the last place on lock.');
+  console.log('PASS: KOReader sync checks the account, keeps no password, offers the newer page from another device without overwriting it, sends the new page, ignores late replies for closed books, still sends when the lookup fails or the book closes before it answers, accepts servers without a document field, keeps a slower earlier opening from taking over, maps EPUB chapters to KOReader\'s DocFragment numbers, sits in Library tools, and sends the last place on lock.');
 }
 main().catch(e => { console.error(e); process.exitCode = 1; }).finally(() => { cleanup(profile); setTimeout(() => process.exit(), 500).unref(); });
