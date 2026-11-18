@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./core/target/**)",
+      "Read(./**/node_modules/**)",
+      "Read(./work/test-tools/**)",
+      "Read(./**/*.onnx)",
+      "Read(./outputs/ThingsBook/vendor/**)",
+      "Read(./outputs/ThingsBook/cmaps/**)",
+      "Read(./outputs/ThingsBook/standard_fonts/**)",
+      "Read(./outputs/ThingsBook/pdf.worker.mjs)"
+    ]
+  }
+}
