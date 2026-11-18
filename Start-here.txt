@@ -1,16 +1,24 @@
-AnF Books 1.15.1 - start here
+AnF Books 1.16.0 - start here
 
 AnF Books was called ThingsBook up to 1.15.1. It is the same app: update over it as usual, and your
 library, backups and voice pack carry over. Releases up to 1.15.1 keep the old file names.
 
-Windows: ThingsBook-Independent-1.15.1.exe (from the next release: AnF-Books-Independent-<version>.exe)
-Android: ThingsBook-Android-1.15.1.apk (from the next release: AnF-Books-Android-<version>.apk)
+Windows: AnF-Books-Independent-1.16.0.exe
+Android: AnF-Books-Android-1.16.0.apk
 Both are on the GitHub Releases page with checksums. Update Android over the existing
 installation; do not uninstall or clear app data, because that removes the private on-device
 library. Keep your existing private voice pack. The APK is signed with the original key.
 Full history of every version: CHANGELOG.md.
 
-What 1.14.3 adds (details in CHANGELOG.md):
+What 1.16.0 adds (details in CHANGELOG.md):
+- The new name, AnF Books, on Windows, Android and in the release file names.
+- The Kevo voice pack: AnF's 13 voices in Voice ("Kevo pack: ..."), each read with the best-matching
+  device voice, with "Hear this voice" to play its recording.
+- KOReader sync of EPUB and PDF reading positions through a Progress sync server you choose.
+- Book tooltips show when a book was last read; a "Has file" name sort; "What was I reading?" for a
+  voice assistant or script.
+
+What 1.14.3 added:
 - Long listening with the screen off: a PDF page that was being drawn when the screen turned off
   now opens, and on Windows the PC no longer suspends AnF Books while reading aloud.
 - 1.14.2: PDFs keep reading past a page end with the screen off (Android); "Keep reading in

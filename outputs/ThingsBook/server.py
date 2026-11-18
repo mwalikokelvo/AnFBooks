@@ -18,7 +18,7 @@ class Handler(SimpleHTTPRequestHandler):
         '.json':'application/json', '.wasm':'application/wasm', '.svg':'image/svg+xml', '.png':'image/png',
         '.jpg':'image/jpeg', '.ico':'image/x-icon', '.ttf':'font/ttf', '.otf':'font/otf', '.woff':'font/woff',
         '.woff2':'font/woff2', '.txt':'text/plain', '.md':'text/plain', '.bcmap':'application/octet-stream',
-        '.pfb':'application/octet-stream', '.gz':'application/gzip', '.traineddata':'application/octet-stream'}
+        '.pfb':'application/octet-stream', '.gz':'application/gzip', '.traineddata':'application/octet-stream', '.mp3':'audio/mpeg'}
     def allowed(self):
         route = urlsplit(self.path).path
         target = (ROOT / route.lstrip('/')).resolve()

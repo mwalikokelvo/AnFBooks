@@ -11,4 +11,4 @@ p=web/'app.js';s=p.read_text(encoding='utf-8')
 s=s.replace("  $('unlock-form').addEventListener('submit',unlock);", "  if(window.ThingsBookDesktop){const transfer=el('p','fine','Moving from the previous app? Restore your encrypted backup below. This desktop app has its own private storage.');$('gate-description').after(transfer);window.ThingsBookDesktop.onClose(async function finishClose(){if(busy){setTimeout(finishClose,200);return;}busy=true;try{await closeReader();await metadataQueue;window.ThingsBookDesktop.closeReady();}catch{toast('Could not save your position. Check free space, then try closing again.');}finally{busy=false;}});}\n  $('unlock-form').addEventListener('submit',unlock);")
 p.write_text(s,encoding='utf-8')
 version=json.loads((desktop/'package.json').read_text())['version']
-p=web/'index.html';s=p.read_text(encoding='utf-8').replace('ThingsBook '+version,'ThingsBook Desktop '+version);p.write_text(s,encoding='utf-8')
+p=web/'index.html';s=p.read_text(encoding='utf-8').replace('AnF Books '+version,'AnF Books Desktop '+version);p.write_text(s,encoding='utf-8')

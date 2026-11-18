@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.16.0 — 2026-11-18
+
 ### Name
 - ThingsBook is now **AnF Books**: the window and app titles, the Android app name and share-sheet entry,
   messages, the KOReader device name for new sync setups, backup and notes file names, and the release
@@ -10,6 +12,10 @@
   format are unchanged, so the library, backups and voice pack carry over.
 
 ### New
+- **Kevo voice pack:** the 13 voices from AnF (Kevo, Nath, Burt, Dav, Cart, Bria, Jean, Aust, Bra, Lil,
+  Seraf, Husky and Grandpa) now come with AnF Books on Windows, Android and in the browser. Pick one
+  in Voice ("Kevo pack: …"): it reads with the installed device voice that best matches its accent and
+  gender, and "Hear this voice" plays its recording. Your private personal voices are unchanged.
 - `window.whatWasIReading()` answers "What was I reading?" in one sentence (the book on the Continue reading card),
   for a voice assistant or a script. From Grok.
 - KOReader sync: share EPUB and PDF reading positions with KOReader through a Progress sync server

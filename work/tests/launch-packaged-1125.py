@@ -25,7 +25,7 @@ if not result.exists():raise SystemExit('Packaged app did not return its smoke r
 data=json.loads(result.read_text(encoding='utf-8'))
 assert not data.get('error'),data
 assert all(data.get(name) for name in ('secure','storage','crypto','desktop','pdf','epub')),data
-assert data['title']=='ThingsBook '+chr(183)+' Your private reading room',data
+assert data['title']=='AnF Books '+chr(183)+' Your private reading room',data
 assert data['version']==VERSION and all(data['native'].values()),data
 reopen=folder/'restart.json'
 env.pop('THINGSBOOK_SMOKE_NATIVE')
