@@ -100,9 +100,11 @@ const ReaderCore = {
         if (target && label && !tocTitles.has(target)) tocTitles.set(target,label);
       }
     } catch {}
-    const chapters = [];
+    // fragment: the spine position KOReader numbers this chapter by (its DocFragment[n] counts every spine item
+    // in the manifest, non-linear and unreadable ones included).
+    const chapters = []; let spine = 0;
     for (const n of packageDoc.getElementsByTagName('*')) if (n.localName === 'itemref') {
-      const item = manifest.get(n.getAttribute('idref')); if (!item || n.getAttribute('linear') === 'no') continue;
+      const item = manifest.get(n.getAttribute('idref')); if (!item) continue; spine++; if (n.getAttribute('linear') === 'no') continue;
       const path = ReaderCore.cleanPath(opfPath,item.getAttribute('href') || ''); if (!path || !files[path]) continue;
       const source=decode(path);let html=parser.parseFromString(source,'application/xhtml+xml');
       const bodyOf=doc=>[...doc.getElementsByTagName('*')].find(node=>node.localName.toLowerCase()==='body');
@@ -111,7 +113,7 @@ const ReaderCore = {
       const heading=[...body.getElementsByTagName('*')].find(node=>['h1','h2','h3'].includes(node.localName.toLowerCase()));
       const headTitle=[...html.getElementsByTagName('*')].find(node=>node.localName.toLowerCase()==='title');
       const title=tocTitles.get(path)||heading?.textContent.replace(/\s+/g,' ').trim()||headTitle?.textContent.trim()||`Chapter ${chapters.length+1}`;
-      chapters.push({path,title:title.slice(0,160),html,body});
+      chapters.push({path,title:title.slice(0,160),html,body,fragment:spine});
     }
     if (!chapters.length) throw new Error('No readable chapters were found. This EPUB may be protected or damaged.');
     return {files,chapters};

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### New
+- KOReader sync: share EPUB and PDF reading positions with KOReader through a Progress sync server
+  (library menu › Library tools & backups › KOReader sync). Off until you enter a server; when another device is further along,
+  the reader offers to jump there. Only the book's KOReader ID, page or chapter and percentage are sent;
+  the password is not stored. The Windows and Android apps make the request (not the browser version).
+
 ### Development
 - `core/tests/latency.rs` checks the latency budgets on a release build in CI: opening a 300-chapter
   EPUB 2 or 3 and loading its first chapter under 150 ms, parsing a 200-entry OPDS feed under 100 ms.
