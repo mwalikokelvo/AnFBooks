@@ -1,4 +1,4 @@
-"""Builds a complete ThingsBook release on a Windows PC, in one command.
+"""Builds a complete AnF Books release on a Windows PC, in one command.
 
 usage (from the repository root, on Windows):
   python work\\release.py 1.13.0                      # Windows EXE + Android APK
@@ -14,7 +14,7 @@ Steps, stopping at the first failure:
   4. installs the desktop runtime if missing (npm ci) and builds the Rust core (cargo build --release);
   5. builds the Windows EXE (then tests its device-protection helper) and the signed Android APK
      (work/build-apps.py), unless skipped;
-  6. writes outputs/ThingsBook-<version>-SHA256SUMS.txt and -Release-notes.md;
+  6. writes outputs/AnF-Books-<version>-SHA256SUMS.txt and -Release-notes.md;
   7. commits "Release <version>" and tags v<version> (push them yourself, or pass --push).
 If a step fails before the commit, the version changes are undone, so you can fix it and rerun.
 
@@ -163,11 +163,11 @@ def build(args, version):
         run(sys.executable, ROOT / 'work/build-apps.py', 'windows')
         # Tests of helpers the Windows build compiles (Windows device protection).
         run(tool('node'), ROOT / 'work/run-tests.cjs', 'provider-1125', '--no-skip')
-        built.append(OUT / f'ThingsBook-Independent-{version}.exe')
+        built.append(OUT / f'AnF-Books-Independent-{version}.exe')
     if not args.skip_android:
         extra = [f'--{k}={v}' for k, v in (('android-tools', args.android_tools), ('jdk', args.jdk), ('sdk', args.sdk), ('signing', args.signing), ('voice-pack', args.voice_pack)) if v]
         run(sys.executable, ROOT / 'work/build-apps.py', 'android', *extra)
-        built.append(OUT / f'ThingsBook-Android-{version}.apk')
+        built.append(OUT / f'AnF-Books-Android-{version}.apk')
     for file in built:
         if not file.is_file():
             raise SystemExit(f'Expected build output is missing: {file}')
@@ -176,20 +176,20 @@ def build(args, version):
 
 def finish(args, version, built):
     # 6. Checksums and notes.
-    sums = OUT / f'ThingsBook-{version}-SHA256SUMS.txt'
+    sums = OUT / f'AnF-Books-{version}-SHA256SUMS.txt'
     sums.write_text(''.join(f'{hashlib.sha256(f.read_bytes()).hexdigest()}  {f.name}\n' for f in built), encoding='utf-8')
     body = notes(version) or 'See CHANGELOG.md.'
-    (OUT / f'ThingsBook-{version}-Release-notes.md').write_text(
-        f'# ThingsBook {version}\n\n' + body + '\n\nInstall the Android APK over the existing app; do not uninstall, '
+    (OUT / f'AnF-Books-{version}-Release-notes.md').write_text(
+        f'# AnF Books {version}\n\n' + body + '\n\nInstall the Android APK over the existing app; do not uninstall, '
         'which removes the private on-device library. Update every device before moving a library with a new backup.\n', encoding='utf-8')
 
     # 7. Commit and tag (build outputs are release assets, not committed).
     run('git', 'add', '-u')
     run('git', 'commit', '-q', '-m', f'Release {version}')
-    run('git', 'tag', '-a', f'v{version}', '-m', f'ThingsBook {version}')
+    run('git', 'tag', '-a', f'v{version}', '-m', f'AnF Books {version}')
     if args.push:
         run('git', 'push', 'origin', 'main', f'v{version}')
-    print(f'\nThingsBook {version} is ready:')
+    print(f'\nAnF Books {version} is ready:')
     for f in [*built, sums]:
         print('  ', f)
     if not args.push:

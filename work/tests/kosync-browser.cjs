@@ -76,7 +76,7 @@ async function main() {
   await page.evaluate(() => ThingsReader.flush());
   await close();
   let put = await until(page, () => syncCalls.filter(c => c.action === 'put').at(-1));
-  assert.equal(put.document, koreaderId(pdf)); assert.equal(put.progress, '9'); assert.equal(put.device, 'ThingsBook');
+  assert.equal(put.document, koreaderId(pdf)); assert.equal(put.progress, '9'); assert.equal(put.device, 'AnF Books');
   assert.match(put.device_id, /^[a-f0-9]{32}$/);
 
   // Closing the book while the server is still answering: the late reply offers nothing anywhere.

@@ -10,7 +10,7 @@ ROOT=Path(__file__).resolve().parents[2]
 # The EXE of the version being built (work/thingsbook-desktop/package.json), or the path given.
 import sys
 VERSION=json.loads((ROOT/'work/thingsbook-desktop/package.json').read_text(encoding='utf-8'))['version']
-EXE=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else ROOT/f'outputs/ThingsBook-Independent-{VERSION}.exe'
+EXE=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else ROOT/f'outputs/AnF-Books-Independent-{VERSION}.exe'
 if not EXE.is_file():raise SystemExit(f'Packaged EXE not found: {EXE}')
 folder=ROOT/'work'/('packaged-smoke-1125-'+uuid.uuid4().hex)
 folder.mkdir()

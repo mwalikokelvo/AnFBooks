@@ -1,4 +1,4 @@
-"""Sets the ThingsBook release version everywhere it appears, and checks every change was applied.
+"""Sets the AnF Books release version everywhere it appears, and checks every change was applied.
 
 usage: python work/set-version.py 1.13.0 [--release-notes]   set a new, higher version
        python work/set-version.py --check                    fail if any place disagrees with package.json
@@ -40,7 +40,7 @@ SPOTS = [
     ('outputs/ThingsBook/android/AndroidManifest.xml', r'(android:versionCode=")(?P<v>\d+)(")', lambda v: str(code(v)), 1),
     ('outputs/ThingsBook/android/AndroidManifest.xml', r'(android:versionName=")(?P<v>[0-9.]+)(")', lambda v: v, 1),
     ('outputs/ThingsBook/android/Build-Android.ps1', r"(\[string\]\$Version = ')(?P<v>[0-9.]+)(')", lambda v: v, 1),
-    ('outputs/ThingsBook/index.html', r'(<span>ThingsBook )(?P<v>[0-9.]+)( ·)', lambda v: v, 1),
+    ('outputs/ThingsBook/index.html', r'(<span>AnF Books )(?P<v>[0-9.]+)( ·)', lambda v: v, 1),
 ]
 
 

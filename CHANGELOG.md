@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Name
+- ThingsBook is now **AnF Books**: the window and app titles, the Android app name and share-sheet entry,
+  messages, the KOReader device name for new sync setups, backup and notes file names, and the release
+  files (`AnF-Books-Independent-<version>.exe`, `AnF-Books-Android-<version>.apk`). It installs over
+  ThingsBook as before: the Android app ID, signing key, storage, settings and the `.thingsbook` backup
+  format are unchanged, so the library, backups and voice pack carry over.
+
 ### New
 - KOReader sync: share EPUB and PDF reading positions with KOReader through a Progress sync server
   (library menu › Library tools & backups › KOReader sync). Off until you enter a server; when another device is further along,

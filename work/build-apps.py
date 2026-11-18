@@ -49,7 +49,7 @@ def windows():
     run(framework, '/nologo', '/target:winexe', '/platform:anycpu', '/optimize+',
         '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll',
         '/reference:System.IO.Compression.dll', '/reference:System.IO.Compression.FileSystem.dll',
-        '/out:' + str(ROOT / f'outputs/ThingsBook-Independent-{VERSION}.exe'),
+        '/out:' + str(ROOT / f'outputs/AnF-Books-Independent-{VERSION}.exe'),
         '/win32icon:' + str(DESKTOP / 'icon.ico'),
         '/resource:' + str(ROOT / 'work/thingsbook-independent-runtime.zip') + ',thingsbook.runtime.zip',
         DESKTOP / 'native/IndependentLauncher.cs')
@@ -58,10 +58,10 @@ def windows():
 TEST_PACKAGE = 'com.thingsbook.library.test'
 
 def test_manifest(build):
-    # A separate app ("ThingsBook Test", com.thingsbook.library.test) that installs next to the real one
+    # A separate app ("AnF Books Test", com.thingsbook.library.test) that installs next to the real one
     # and keeps its own library. Components keep their Java package, so their names are written in full.
     text = (APP / 'android/AndroidManifest.xml').read_text(encoding='utf-8')
-    for old, new in (('package="com.thingsbook.library"', f'package="{TEST_PACKAGE}"'), ('android:label="ThingsBook"', 'android:label="ThingsBook Test"'),
+    for old, new in (('package="com.thingsbook.library"', f'package="{TEST_PACKAGE}"'), ('android:label="AnF Books"', 'android:label="AnF Books Test"'),
                      ('android:name=".ListeningService"', 'android:name="com.thingsbook.library.ListeningService"'),
                      ('android:name=".MainActivity"', 'android:name="com.thingsbook.library.MainActivity"')):
         if text.count(old) != 1:
@@ -145,7 +145,7 @@ def android(tools, jdk_home=None, sdk_root=None, signing=None, test=False, voice
         '--lib', platform, '--output', build / 'dex', build / 'classes.jar')
     run(jdk / 'jar.exe', 'uf', build / 'unsigned.apk', '-C', build / 'dex', 'classes.dex')
     run(sdk / 'zipalign.exe', '-f', '-P', '16', '4', build / 'unsigned.apk', build / 'aligned.apk')
-    apk = ROOT / f"outputs/ThingsBook-Android-{'Test-' if test else ''}{VERSION}.apk"
+    apk = ROOT / f"outputs/AnF-Books-Android-{'Test-' if test else ''}{VERSION}.apk"
     run(jdk / 'java.exe', '-jar', sdk / 'lib/apksigner.jar', 'sign',
         '--ks', keystore, '--ks-key-alias', 'thingsbook', '--ks-pass', 'file:' + str(password),
         '--out', apk, build / 'aligned.apk')

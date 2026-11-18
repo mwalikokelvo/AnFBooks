@@ -66,7 +66,7 @@ const ThingsKindle = (() => {
   async function toEPUB(input, {zip = globalThis.ThingsArchiveLib} = {}) {
     const file = input instanceof Blob ? input : new Blob([input]);
     if (!await ThingsFoliateMobi.isMOBI(file)) throw failure('This is not a Kindle (MOBI or AZW3) book.');
-    if (await protectedBook(file)) throw failure('This Kindle book is DRM-protected. ThingsBook only opens DRM-free books; use a copy without DRM.');
+    if (await protectedBook(file)) throw failure('This Kindle book is DRM-protected. AnF Books only opens DRM-free books; use a copy without DRM.');
     const mobi = new ThingsFoliateMobi.MOBI({unzlib:zip.unzlibSync});
     let book;
     try { book = await mobi.open(file); } catch { throw failure('This Kindle book could not be read. It may be damaged or use an unsupported variant.'); }

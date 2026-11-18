@@ -31,7 +31,7 @@ function reportUnexpectedError(reason) {
   if (isBenignError(reason)) return;
   try { console.error(reason); } catch {}
   const now = Date.now(); if (now - lastErrorToast < 10000) return; lastErrorToast = now;
-  toast('Something went wrong. Your library is safe; if this keeps happening, lock and unlock ThingsBook or restart it.');
+  toast('Something went wrong. Your library is safe; if this keeps happening, lock and unlock AnF Books or restart it.');
 }
 if (typeof window.addEventListener === 'function') {
   window.addEventListener('unhandledrejection', e => reportUnexpectedError(e.reason));
@@ -260,7 +260,7 @@ function bookButton(book, index, grid) {
   if(cover&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(book.cover||'')){button.classList.add('has-cover');const image=el('img','custom-cover');image.src=book.cover;image.alt='';image.loading='lazy';image.decoding='async';button.append(image);}
   if (cover) button.append(el('span','book-format',book.format),el('span','book-ornament','✦'));
   button.append(el('span','book-title',book.title),el('span','book-author',book.author==='Unknown author'&&!cover?'':book.author));
-  if (cover) button.append(el('span','book-rating',book.rating ? '★'.repeat(book.rating) : 'THINGSBOOK'));
+  if (cover) button.append(el('span','book-rating',book.rating ? '★'.repeat(book.rating) : 'ANF BOOKS'));
   if (book.progress?.percent) { const bar = el('span','reading-progress'); const fill = el('i'); fill.style.width = Math.max(0,Math.min(100,book.progress.percent))+'%'; bar.append(fill); button.append(bar); }
   if (!cover) button.style.height = `${170 + (index % 4) * 10}px`;
   button.addEventListener('click',() => showDetail(book.id));window.ThingsSanctuary?.decorateBook(button,book); return button;
@@ -594,8 +594,8 @@ async function downloadRecovery() {
   if (busy || !key || !$('backup-recovery').value) return;
   busy = true;
   try {
-    const text = 'ThingsBook recovery code\n\n'+$('backup-recovery').value+'\n\nKeep this separately from your encrypted .thingsbook backup. Anyone with both can read that backup. Use the exact code, including hyphens, when restoring on another device. Clearing app data or uninstalling can remove device access.\n';
-    await downloadBlob(new Blob([text],{type:'text/plain'}),'ThingsBook-recovery-code.txt');
+    const text = 'AnF Books recovery code\n\n'+$('backup-recovery').value+'\n\nKeep this separately from your encrypted .thingsbook backup. Anyone with both can read that backup. Use the exact code, including hyphens, when restoring on another device. Clearing app data or uninstalling can remove device access.\n';
+    await downloadBlob(new Blob([text],{type:'text/plain'}),'AnF-Books-recovery-code.txt');
     toast('Save the recovery code somewhere safe, separately from the backup.');
   } catch { toast('Recovery code was not saved. Try again before moving your library.'); }
   finally { busy = false; resetIdle(); }
@@ -609,15 +609,15 @@ async function recordSizes() { return new Promise((resolve,reject) => {
 // Small libraries of whole-file books keep backup version 1 so older releases can restore them.
 // Larger libraries, and any library with chunked books (which version 1 cannot hold), stream as version 2.
 async function backupBlob(created) { const sizes = await recordSizes(), recognizedText = await request(db.transaction('ocr').objectStore('ocr').count()) > 0; if (!recognizedText && !sizes.some(s => s.chunked) && ThingsBackup.fitsLegacy(sizes,config)) return ThingsBackup.legacy(await allRecords(),config,created); return ThingsBackup.stream(config,sizes.map(s => s.id),async id => { const record = await getRecord(id); if (record) record.ocr = (await request(db.transaction('ocr').objectStore('ocr').getAll(chunkRange(id)))).map(r => ({page:r.page,iv:r.iv,data:r.data})); if (record?.chunks) { /* two passes: piece details first, then one piece's bytes at a time */ record.partInfo = []; for (let index = 0; index < record.chunks.count; index++) { const part = await getChunk(id,index); if (!part) throw new Error('A book file is incomplete. Restore it from a backup before backing up.'); record.partInfo.push({book:part.book,index:part.index,iv:part.iv,size:part.data.byteLength}); } record.partData = index => getChunk(id,index); } return record; },created); }
-async function backup() { if (busy || !key) return; busy = true; try { await closeReader(); await metadataQueue; const created = new Date().toISOString(); await downloadBlob(await backupBlob(created),`ThingsBook-backup-${created.slice(0,10)}.thingsbook`); $('backup-dialog').close(); $('backup-recovery').value = ''; toast(window.ThingsBookAndroid ? 'Choose where to save your encrypted backup. Keep its recovery code separately.' : 'Encrypted backup exported. Keep the recovery code separately for another device.'); } catch { toast('Could not export the backup. Check free space, close other apps and try again.'); } finally { busy = false; resetIdle(); } }
+async function backup() { if (busy || !key) return; busy = true; try { await closeReader(); await metadataQueue; const created = new Date().toISOString(); await downloadBlob(await backupBlob(created),`AnF-Books-backup-${created.slice(0,10)}.thingsbook`); $('backup-dialog').close(); $('backup-recovery').value = ''; toast(window.ThingsBookAndroid ? 'Choose where to save your encrypted backup. Keep its recovery code separately.' : 'Encrypted backup exported. Keep the recovery code separately for another device.'); } catch { toast('Could not export the backup. Check free space, close other apps and try again.'); } finally { busy = false; resetIdle(); } }
 async function restoreFile(file) { if (!file || busy) return; busy = true; try {
   const restored = await ThingsBackup.read(file,{lazy:true}); // version 1 or 2, fully validated; version 2 books are indexed, not loaded
   restored.file = file;
   if (config && !confirm(`Restore ${restored.books.length} books? This replaces the library on this device only after every book is verified. Export a current backup first to keep both collections. Continue?`)) return;
   pendingBackup = restored; busy = false; await lock(); gateState(); toast('Enter the recovery code or original backup password. Your existing library stays intact until verification succeeds.');
-} catch (e) { toast(e?.code === 'newer' || e?.code === 'truncated' ? e.message : 'This is not a valid ThingsBook encrypted backup.'); } finally { busy = false; $('backup-file').value = ''; } }
+} catch (e) { toast(e?.code === 'newer' || e?.code === 'truncated' ? e.message : 'This is not a valid AnF Books encrypted backup.'); } finally { busy = false; $('backup-file').value = ''; } }
 async function init() {
-  try { if (!crypto.subtle || !window.indexedDB) throw new Error('Use Start ThingsBook.cmd to open this app at its localhost address.');
+  try { if (!crypto.subtle || !window.indexedDB) throw new Error('Use Start AnF Books.cmd to open this app at its localhost address.');
     // Version 2 adds the "chunks" store, version 3 "staging" and version 4 "ocr"; existing settings and books are untouched.
     const opening = indexedDB.open(DB_NAME,DB_VERSION); opening.onupgradeneeded = () => { if(!opening.result.objectStoreNames.contains('settings'))opening.result.createObjectStore('settings');if(!opening.result.objectStoreNames.contains('books'))opening.result.createObjectStore('books',{keyPath:'id'});if(!opening.result.objectStoreNames.contains('chunks'))opening.result.createObjectStore('chunks',{keyPath:['book','index']});if(!opening.result.objectStoreNames.contains('staging'))opening.result.createObjectStore('staging',{keyPath:['book','index']});if(!opening.result.objectStoreNames.contains('ocr'))opening.result.createObjectStore('ocr',{keyPath:['book','page']}); }; db = await request(opening); db.onversionchange = () => { db.close(); location.reload(); }; config = await request(db.transaction('settings').objectStore('settings').get('vault')); hasDeviceAccess = !!(config && await request(db.transaction('settings').objectStore('settings').get('device-access'))); gateState();
   } catch(e) { $('gate-error').textContent = e.message || 'Browser storage is unavailable. Use a normal browser window.'; $('unlock-button').disabled = true; return; }

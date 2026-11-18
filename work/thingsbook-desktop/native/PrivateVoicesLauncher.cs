@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
-[assembly:AssemblyTitle("ThingsBook Private Personal Voices")]
+[assembly:AssemblyTitle("AnF Books Private Personal Voices")]
 [assembly:AssemblyVersion("1.9.5.0")]
 internal static class PrivateVoicesLauncher {
  static string LongPath(string path){string full=Path.GetFullPath(path);if(full.StartsWith(@"\\?\"))return full;return full.StartsWith(@"\\")?@"\\?\UNC\"+full.Substring(2):@"\\?\"+full;}
@@ -34,9 +34,9 @@ internal static class PrivateVoicesLauncher {
   try{
    PrivateDirectory(privateRoot);
    using(var mutex=new Mutex(false,"Local\\ThingsBookPrivateVoices195")){
-    if(!mutex.WaitOne(TimeSpan.FromMinutes(5)))throw new Exception("Another ThingsBook window is preparing the personal voices. Please try again shortly.");
+    if(!mutex.WaitOne(TimeSpan.FromMinutes(5)))throw new Exception("Another AnF Books window is preparing the personal voices. Please try again shortly.");
     try{
-     using(var form=new Form{Text="ThingsBook — Your personal voices",Width=460,Height=170,StartPosition=FormStartPosition.CenterScreen,FormBorderStyle=FormBorderStyle.FixedDialog,ControlBox=false})
+     using(var form=new Form{Text="AnF Books — Your personal voices",Width=460,Height=170,StartPosition=FormStartPosition.CenterScreen,FormBorderStyle=FormBorderStyle.FixedDialog,ControlBox=false})
      using(var label=new Label{Text="Preparing your 15 personal reading voices.\nEverything stays on this computer.",Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleCenter,Font=new Font("Segoe UI",11)})
      using(var bar=new ProgressBar{Dock=DockStyle.Bottom,Height=22}){
       form.Controls.Add(label);form.Controls.Add(bar);
