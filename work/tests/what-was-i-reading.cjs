@@ -3,7 +3,8 @@
 'use strict';
 const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
 const assert = require('node:assert/strict');
-const source = fs.readFileSync(path.join(__dirname, '../../outputs/ThingsBook/app.js'), 'utf8');
+// Windows checkouts can have CRLF line endings; the patterns below expect LF.
+const source = fs.readFileSync(path.join(__dirname, '../../outputs/ThingsBook/app.js'), 'utf8').replace(/\r\n/g, '\n');
 const pick = name => { const m = source.match(new RegExp(`\\nfunction ${name}\\(\\)[\\s\\S]*?\\n}\\n|\\nfunction ${name}\\(\\)\\{.*\\}\\n`)); assert(m, `${name} is in app.js`); return m[0]; };
 assert(source.includes('const resume = lastBookInProgress();'), 'the Continue reading card uses the same book');
 assert(source.includes('window.whatWasIReading = whatWasIReading;'));
