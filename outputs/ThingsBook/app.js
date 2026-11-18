@@ -266,6 +266,15 @@ function bookButton(book, index, grid) {
   button.addEventListener('click',() => showDetail(book.id));window.ThingsSanctuary?.decorateBook(button,book); return button;
 }
 function refreshLibrary(){if($('reader-dialog').open){libraryNeedsRender=true;return;}render();}
+
+// Assistant-style: what was I reading?
+function whatWasIReading() {
+  const recent = [...books].filter(b => b.lastRead && b.status !== 'finished').sort((a, b) => b.lastRead - a.lastRead)[0];
+  if (!recent) return 'You have no books in progress.';
+  const pct = Math.round(recent.progress?.percent || 0);
+  return `You were reading ${recent.title} by ${recent.author || 'unknown author'}, ${pct} percent complete.`;
+}
+window.whatWasIReading = whatWasIReading;
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
