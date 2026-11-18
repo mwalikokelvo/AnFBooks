@@ -6,6 +6,18 @@
 - `core/tests/latency.rs` checks the latency budgets on a release build in CI: opening a 300-chapter
   EPUB 2 or 3 and loading its first chapter under 150 ms, parsing a 200-entry OPDS feed under 100 ms.
 
+### Library
+- A book's tooltip shows when it was last read.
+
+### Repairs
+- `app.js` was cut short by a direct push to `main` (commits 06a8249 and 36fbb7a, 17 November); restored in full with only the intended tooltip line kept.
+
+### For builders
+- **One rulebook for every assistant:** `AGENTS.md` now holds the engineering rules (pure Rust core,
+  no telemetry, no polling, replace in place, speed budgets) and who works where. `CLAUDE.md`,
+  `GEMINI.md` and Copilot point to it. A `verifier` agent runs the checks before a pull request, and CI
+  now fails on Rust lint warnings.
+
 ## 1.15.1 — 2026-11-13
 
 Two finished improvements from the 1 November overnight work that were left on a side branch and

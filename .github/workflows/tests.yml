@@ -56,7 +56,9 @@ jobs:
             ~/.cargo/git
             core/target
           key: cargo-${{ runner.os }}-${{ hashFiles('core/Cargo.lock') }}
+      - name: Lint (warnings are errors)
+        run: cargo clippy --locked --all-targets -- -D warnings
       - name: Test
         run: cargo test --locked
       - name: "Latency budgets (release build: EPUB < 150 ms, OPDS < 100 ms)"
-        run: cargo test --release --locked --test latency -- --nocapture
+        run: cargo test --release --locked --test latency -- --nocapture --test-threads=1
