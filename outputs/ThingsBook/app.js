@@ -266,6 +266,17 @@ function bookButton(book, index, grid) {
   button.addEventListener('click',() => showDetail(book.id));window.ThingsSanctuary?.decorateBook(button,book); return button;
 }
 function refreshLibrary(){if($('reader-dialog').open){libraryNeedsRender=true;return;}render();}
+
+// The book the Continue reading card offers: last opened, not finished.
+function lastBookInProgress(){return [...books].filter(b => b.lastRead && b.status !== 'finished' && b.progress?.percent!==100).sort((a,b) => b.lastRead-a.lastRead)[0];}
+// "What was I reading?" in one sentence, for a voice assistant or a script: the same book as that card.
+function whatWasIReading() {
+  const recent = lastBookInProgress();
+  if (!recent) return 'You have no books in progress.';
+  const by = recent.author && recent.author !== 'Unknown author' ? ` by ${recent.author}` : '';
+  return `You were reading ${recent.title}${by}, ${Math.round(recent.progress?.percent || 0)} percent read.`;
+}
+window.whatWasIReading = whatWasIReading;
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
@@ -326,7 +337,7 @@ function render() {
   const sortBy = $('sort').value, sortKeys = libraryShuffle(sortBy, found); found.sort((a,b) => compareBooks(sortBy, a, b, sortKeys) || (b.added || 0) - (a.added || 0));
   libraryPage=Math.max(0,Math.min(libraryPage,Math.ceil(found.length/60)-1));const visibleBooks=found.slice(libraryPage*60,(libraryPage+1)*60);window.ThingsSanctuary?.pages(found.length,libraryPage,next=>{libraryPage=next;render();});
   $('nav-count').textContent = books.length; $('total-books').textContent = books.length; $('total-shelves').textContent = shelves.length; $('total-reading').textContent = books.filter(b => b.status === 'reading').length; $('total-storage').textContent = size(books.reduce((n,b) => n + b.size + 16,0));
-  const resume = [...books].filter(b => b.lastRead && b.status !== 'finished' && b.progress?.percent!==100).sort((a,b) => b.lastRead-a.lastRead)[0]; const resumeHost = $('continue-reading'); resumeHost.replaceChildren(); resumeHost.hidden = !resume;
+  const resume = lastBookInProgress(); const resumeHost = $('continue-reading'); resumeHost.replaceChildren(); resumeHost.hidden = !resume;
   if (resume) { const text = el('div'); text.append(el('strong','',resume.title),el('p','',`${Math.round(resume.progress?.percent || 0)}% read${readingLeft(resume)} · your next chapter is waiting`)); const button = el('button','primary','Continue reading →'); button.onclick = () => readBook(resume.id); resumeHost.append(text,button); }
   const current = shelves.find(s => s.id === filter); $('location').textContent = current?.name || (filter === 'reading' ? 'Currently reading' : 'All books'); $('library-heading').textContent = current?.name || (filter === 'reading' ? 'Currently reading' : 'Your bookshelf'); $('result-count').textContent = books.length ? `${found.length} ${found.length === 1 ? 'book' : 'books'} · a little world of your own` : 'A collection that grows with you';
   $('all-books').classList.toggle('active',filter === 'all'); $('reading-filter').classList.toggle('active',filter === 'reading');

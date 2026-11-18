@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### New
+- `window.whatWasIReading()` answers "What was I reading?" in one sentence (the book on the Continue reading card),
+  for a voice assistant or a script. From Grok.
 - KOReader sync: share EPUB and PDF reading positions with KOReader through a Progress sync server
   (library menu › Library tools & backups › KOReader sync). Off until you enter a server; when another device is further along,
   the reader offers to jump there. Only the book's KOReader ID, page or chapter and percentage are sent;
