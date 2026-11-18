@@ -28,7 +28,8 @@
   EPUB 2 or 3 and loading its first chapter under 150 ms, parsing a 200-entry OPDS feed under 100 ms.
 
 ### Library
-- A book's tooltip shows when it was last read.
+- A book's tooltip shows its series, shelf, the date it was added and when it was last read.
+- New sorts: "Has file name first" and "No file name first".
 
 ### Repairs
 - `app.js` was cut short by a direct push to `main` (commits 06a8249 and 36fbb7a, 17 November); restored in full with only the intended tooltip line kept.
