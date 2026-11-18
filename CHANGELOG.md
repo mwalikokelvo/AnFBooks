@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### New
+- Assistant helper: window.whatWasIReading() reports the last book in progress with title, author and percent.
 - KOReader sync: share EPUB and PDF reading positions with KOReader through a Progress sync server
   (library menu › Library tools & backups › KOReader sync). Off until you enter a server; when another device is further along,
   the reader offers to jump there. Only the book's KOReader ID, page or chapter and percentage are sent;
@@ -48,6 +49,7 @@ never reached `main`:
 ## 1.15.0 — 2026-11-13
 
 ### New
+- Assistant helper: window.whatWasIReading() reports the last book in progress with title, author and percent.
 - **Rename and delete shelves.** "Edit" beside Your shelves (and "Shelves" in the phone tools) opens
   a shelf manager. Deleting a shelf moves its books to another shelf; no book is ever deleted.
 - **Many more ways to sort the library**, grouped in the sort menu: oldest added, least recently
@@ -185,6 +187,7 @@ Fixes from reviewing a screen recording of 1.14.0 on Windows and two outside rep
 ## 1.14.0 — 2026-10-27
 
 ### New
+- Assistant helper: window.whatWasIReading() reports the last book in progress with title, author and percent.
 - **No more accidental duplicates.** A book that is already in your library (same content, whatever its
   file name) is not imported again; the import names the book it matches. Converted books (Kindle, Word,
   ...) are matched by their original file. Tick "Also import books already in my library" to keep a
@@ -208,6 +211,7 @@ to 500 MB opened by byte range, saved OCR text, library search inside PDFs, and 
 storage and backups. Install over 1.12.5; your library is converted in the background.
 
 ### New
+- Assistant helper: window.whatWasIReading() reports the last book in progress with title, author and percent.
 - **Kindle books (MOBI, AZW3, combined MOBI)** import by being converted to EPUB once, at import.
   Uses foliate-js's parser (MIT, vendored by `work/vendor-foliate.py`). DRM-protected books are
   refused with an explanation, never decrypted.
