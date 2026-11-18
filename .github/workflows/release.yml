@@ -153,7 +153,7 @@ jobs:
           $changelog = Get-Content CHANGELOG.md -Raw -Encoding utf8
           $section = [regex]::Match($changelog, "(?ms)^## $([regex]::Escape($env:VERSION)) — [^\n]*\n(.*?)(?=^## |\z)").Groups[1].Value.Trim()
           if (-not $section) { $section = 'See CHANGELOG.md.' }
-          $notes = $section + "`n`n**Installing:** install the Android APK over the existing AnF Books app; do not uninstall first, which deletes the private on-device library. Update every device before moving a library with a new backup. Personal voices stay installed across updates; this public build does not carry a voice pack."
+          $notes = $section + "`n`n**Installing:** install the Android APK over the existing AnF Books app; do not uninstall first, which deletes the private on-device library. Update every device before moving a library with a new backup. Personal voices stay installed across updates. The Kevo voice pack comes with the app; personal voice packs are never included in this public build."
           if (-not (Test-Path "outputs/AnF-Books-Android-$env:VERSION.apk")) { $notes += "`n`nThis release has no Android APK: the signing secrets are not set." }
           if (-not (Test-Path "outputs/AnF-Books-Independent-$env:VERSION.exe")) { $notes += "`n`nThis release has no Windows EXE: its build failed (see the workflow run). Build it with python work/release.py on Windows." }
           Set-Content "$env:RUNNER_TEMP/release-notes.md" $notes -Encoding utf8
