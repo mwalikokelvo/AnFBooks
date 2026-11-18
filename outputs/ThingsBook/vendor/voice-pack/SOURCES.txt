@@ -1,0 +1,10 @@
+Kevo voice pack
+===============
+
+The same 13 recordings that AnF ships in windows/voice-pack/ (github.com/mwalikokelvo/AnF). The
+owner made or designed these voices and chose to publish all 13 with the apps (14 Nov 2026).
+"Kevo - gentle bass.mp3" is the owner's own voice.
+
+They are samples, not a speech engine. In AnF Books each one is a reading voice in the Voice list:
+choosing it reads the book with the installed device voice that best matches its accent and
+gender, and "Hear this voice" plays the recording. File names must match vendor/voice-pack.js.

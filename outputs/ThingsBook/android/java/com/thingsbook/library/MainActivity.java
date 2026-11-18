@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
         String path=u.getPath();if("/shared-file".equals(path))return "GET".equals(r.getMethod())&&u.getQueryParameterNames().size()==1?sharedFile(u.getQueryParameter("ticket")):blocked();if("/personal-audio".equals(path))return "GET".equals(r.getMethod())&&u.getQueryParameterNames().size()==1?personal.serve(u.getQueryParameter("ticket"),r.getRequestHeaders().get("Range")):blocked();if("/provider-file".equals(path))return "GET".equals(r.getMethod())&&u.getQueryParameterNames().size()==1?provider.download(u.getQueryParameter("ticket")):blocked();if("/catalog".equals(path))return "GET".equals(r.getMethod())?BookCatalog.fetch(u):blocked();if("/".equals(path))path="/index.html";
         if(path==null||path.contains("..")||path.contains("\\"))return blocked();
         if(!Arrays.asList("/index.html","/style.css","/app.js","/reader.js","/reader.css","/pdf.worker.mjs").contains(path)&&!path.startsWith("/vendor/")&&!path.startsWith("/cmaps/")&&!path.startsWith("/wasm/")&&!path.startsWith("/standard_fonts/"))return blocked();
-        String mime=path.endsWith(".js")||path.endsWith(".mjs")?"text/javascript":path.endsWith(".css")?"text/css":path.endsWith(".wasm")?"application/wasm":path.endsWith(".html")?"text/html":"application/octet-stream";
+        String mime=path.endsWith(".js")||path.endsWith(".mjs")?"text/javascript":path.endsWith(".css")?"text/css":path.endsWith(".wasm")?"application/wasm":path.endsWith(".html")?"text/html":path.endsWith(".mp3")?"audio/mpeg":"application/octet-stream";
         try{return new WebResourceResponse(mime,"UTF-8",getAssets().open("web"+path));}catch(IOException e){return blocked();}
       }
     });

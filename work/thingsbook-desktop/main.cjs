@@ -131,7 +131,7 @@ async function start(){
    const allow=['index.html','style.css','app.js','reader.js','reader.css','pdf.worker.mjs'];
    if(!allow.includes(relative)&&!['vendor/','cmaps/','standard_fonts/','wasm/'].some(prefix=>relative.startsWith(prefix)))return new Response('Not found',{status:404});
    const target=path.resolve(root,relative);if(!target.startsWith(root+path.sep)||relative.includes('\\'))return new Response('Blocked',{status:403});
-   const mime=relative.endsWith('.css')?'text/css':/\.m?js$/.test(relative)?'text/javascript':relative.endsWith('.html')?'text/html':relative.endsWith('.wasm')?'application/wasm':'application/octet-stream';
+   const mime=relative.endsWith('.css')?'text/css':/\.m?js$/.test(relative)?'text/javascript':relative.endsWith('.html')?'text/html':relative.endsWith('.wasm')?'application/wasm':relative.endsWith('.mp3')?'audio/mpeg':'application/octet-stream';
    const body=await fs.readFile(target);return new Response(request.method==='HEAD'?null:body,{headers:{'Content-Type':mime+(mime.startsWith('text/')?'; charset=utf-8':''),'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   }catch{return new Response('Not found',{status:404});}
  });
