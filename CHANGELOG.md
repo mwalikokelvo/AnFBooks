@@ -8,6 +8,10 @@
   the reader offers to jump there. Only the book's KOReader ID, page or chapter and percentage are sent;
   the password is not stored. The Windows and Android apps make the request (not the browser version).
 
+### Development
+- `core/tests/latency.rs` checks the latency budgets on a release build in CI: opening a 300-chapter
+  EPUB 2 or 3 and loading its first chapter under 150 ms, parsing a 200-entry OPDS feed under 100 ms.
+
 ### Library
 - A book's tooltip shows when it was last read.
 
