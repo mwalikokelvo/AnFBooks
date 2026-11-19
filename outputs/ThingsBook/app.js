@@ -278,11 +278,16 @@ function whatWasIReading() {
 }
 window.whatWasIReading = whatWasIReading;
 
+// "Recommend a book" in one sentence, for a voice assistant or a script: an unfinished book rated 4 stars or more,
+// or else one with tags, the best rated first and then the most recently added. From Grok.
 function recommendBookFromLibrary() {
-  const candidates = books.filter(b => b.status !== 'finished' && (b.rating >= 4 || (b.tags && b.tags.length)));
-  if (!candidates.length) return 'I could not find a strong recommendation in your unfinished books.';
-  const pick = candidates[Math.floor(Math.random() * candidates.length)];
-  return `You might enjoy ${pick.title} by ${pick.author}. It is ${pick.progress?.percent || 0}% read.`;
+  const unfinished = books.filter(b => b.status !== 'finished' && b.progress?.percent !== 100);
+  const rated = unfinished.filter(b => b.rating >= 4), pool = rated.length ? rated : unfinished.filter(b => b.tags?.length);
+  const pick = pool.sort((a,b) => (b.rating || 0) - (a.rating || 0) || (b.added || 0) - (a.added || 0))[0];
+  if (!pick) return 'I could not find a book to recommend among your unfinished books. Rate or tag a few first.';
+  const by = pick.author && pick.author !== 'Unknown author' ? ` by ${pick.author}` : '';
+  const read = Math.round(pick.progress?.percent || 0);
+  return `You might enjoy ${pick.title}${by}. ${read ? `You are ${read} percent through it.` : 'You have not started it yet.'}`;
 }
 window.recommendBookFromLibrary = recommendBookFromLibrary;
 
