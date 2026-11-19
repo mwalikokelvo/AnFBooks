@@ -277,6 +277,15 @@ function whatWasIReading() {
   return `You were reading ${recent.title}${by}, ${Math.round(recent.progress?.percent || 0)} percent read.`;
 }
 window.whatWasIReading = whatWasIReading;
+
+function recommendBookFromLibrary() {
+  const candidates = books.filter(b => b.status !== 'finished' && (b.rating >= 4 || (b.tags && b.tags.length)));
+  if (!candidates.length) return 'I could not find a strong recommendation in your unfinished books.';
+  const pick = candidates[Math.floor(Math.random() * candidates.length)];
+  return `You might enjoy ${pick.title} by ${pick.author}. It is ${pick.progress?.percent || 0}% read.`;
+}
+window.recommendBookFromLibrary = recommendBookFromLibrary;
+
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
