@@ -277,6 +277,19 @@ function whatWasIReading() {
   return `You were reading ${recent.title}${by}, ${Math.round(recent.progress?.percent || 0)} percent read.`;
 }
 window.whatWasIReading = whatWasIReading;
+
+// Voice-friendly helper: speak the last book when the library is open.
+function speakWhatWasIReading() {
+  const text = whatWasIReading();
+  if (window.speechSynthesis) {
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.9;
+    window.speechSynthesis.speak(u);
+  }
+  return text;
+}
+window.speakWhatWasIReading = speakWhatWasIReading;
+
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
