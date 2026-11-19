@@ -277,6 +277,13 @@ function whatWasIReading() {
   return `You were reading ${recent.title}${by}, ${Math.round(recent.progress?.percent || 0)} percent read.`;
 }
 window.whatWasIReading = whatWasIReading;
+
+function libraryBookCount() {
+  return books.length;
+}
+window.libraryBookCount = libraryBookCount;
+window.howManyBooks = () => `You have ${books.length} book${books.length === 1 ? '' : 's'} in your library.`;
+
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
