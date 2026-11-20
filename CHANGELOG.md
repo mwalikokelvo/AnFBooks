@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `window.estimatedTimeLeft()` answers how long is left in the book you were reading, using the same 1.5 minutes per remaining page as the library tooltips. From Grok.
+
 ## 1.16.0 — 2026-11-18
 
 ### Name

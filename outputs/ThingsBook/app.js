@@ -277,6 +277,21 @@ function whatWasIReading() {
   return `You were reading ${recent.title}${by}, ${Math.round(recent.progress?.percent || 0)} percent read.`;
 }
 window.whatWasIReading = whatWasIReading;
+// "How much longer?" / estimated time left for the book you were reading, for voice or script.
+// Uses the same ~1.5 min per remaining page as the library tooltips. Unknown when pages are missing.
+function estimatedTimeLeft() {
+  const recent = lastBookInProgress();
+  if (!recent) return 'You have no books in progress.';
+  const pages = timeLeft(recent);
+  if (!Number.isFinite(pages)) return `I do not know how long ${recent.title} has left.`;
+  const minutes = Math.max(1, Math.round(pages * 1.5));
+  const spoken = minutes >= 60
+    ? `${Math.floor(minutes / 60)} hour${Math.floor(minutes / 60) === 1 ? '' : 's'} ${minutes % 60} minute${minutes % 60 === 1 ? '' : 's'}`
+    : `${minutes} minute${minutes === 1 ? '' : 's'}`;
+  const by = recent.author && recent.author !== 'Unknown author' ? ` by ${recent.author}` : '';
+  return `About ${spoken} left in ${recent.title}${by}.`;
+}
+window.estimatedTimeLeft = estimatedTimeLeft;
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
