@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `window.progressOnBook(query)` answers "How far am I in [book]?" or "progress on [title]" in one sentence for a voice assistant or script. Matches title or author, prefers the most recently read. From Grok.
+
 ## 1.16.0 — 2026-11-18
 
 ### Name

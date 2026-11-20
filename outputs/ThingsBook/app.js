@@ -277,6 +277,25 @@ function whatWasIReading() {
   return `You were reading ${recent.title}${by}, ${Math.round(recent.progress?.percent || 0)} percent read.`;
 }
 window.whatWasIReading = whatWasIReading;
+
+// "How far am I in [book]?" or "progress on [title]" for a voice assistant or script.
+function progressOnBook(query) {
+  if (!query || typeof query !== 'string') return 'Please name a book.';
+  const q = query.toLowerCase().trim();
+  const matches = books.filter(b => 
+    (b.title && b.title.toLowerCase().includes(q)) || 
+    (b.author && b.author.toLowerCase().includes(q))
+  );
+  if (matches.length === 0) return `No book matching "${query}" in your library.`;
+  // Prefer the one most recently read, or first
+  const book = matches.sort((a,b) => (b.lastRead||0) - (a.lastRead||0))[0];
+  const pct = Math.round(book.progress?.percent || 0);
+  const by = book.author && book.author !== 'Unknown author' ? ` by ${book.author}` : '';
+  const status = book.status === 'finished' ? 'finished' : (pct > 0 ? `${pct} percent read` : 'not started');
+  return `You are ${status} on ${book.title}${by}.`;
+}
+window.progressOnBook = progressOnBook;
+
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
