@@ -277,6 +277,19 @@ function whatWasIReading() {
   return `You were reading ${recent.title}${by}, ${Math.round(recent.progress?.percent || 0)} percent read.`;
 }
 window.whatWasIReading = whatWasIReading;
+function searchLibraryAssistant(query) {
+  const terms = String(query || '').trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+  if (!terms.length) return 'Say what to look for, for example search my library for Dune.';
+  const matches = books.filter(b => terms.every(t => (b.title + ' ' + (b.author || '')).toLocaleLowerCase().includes(t)));
+  if (!matches.length) return `No books matching ${query}.`;
+  if (matches.length === 1) {
+    const b = matches[0];
+    const by = b.author && b.author !== 'Unknown author' ? ` by ${b.author}` : '';
+    return `Found ${b.title}${by}, ${Math.round(b.progress?.percent || 0)} percent read.`;
+  }
+  return `Found ${matches.length} books matching ${query}: ${matches.slice(0, 3).map(b => b.title).join(', ')}${matches.length > 3 ? ' and more' : ''}.`;
+}
+window.searchLibraryAssistant = searchLibraryAssistant;
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
