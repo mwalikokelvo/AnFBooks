@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- `window.librarySummary()` answers a voice or script query about how many books are in the library, how many are reading/unread/finished, and average progress.
 
 ## 1.16.0 — 2026-11-18
 
