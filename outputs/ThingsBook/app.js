@@ -277,6 +277,13 @@ function whatWasIReading() {
   return `You were reading ${recent.title}${by}, ${Math.round(recent.progress?.percent || 0)} percent read.`;
 }
 window.whatWasIReading = whatWasIReading;
+// How many books in the library, for a voice assistant or script.
+function libraryCount() {
+  const total = books.length;
+  const unfinished = books.filter(b => b.status !== 'finished' && (b.progress?.percent || 0) < 100).length;
+  return total === 0 ? 'Your library is empty.' : `You have ${total} book${total === 1 ? '' : 's'} in your library, of which ${unfinished} are still in progress.`;
+}
+window.libraryCount = libraryCount;
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.

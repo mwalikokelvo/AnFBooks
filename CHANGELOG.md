@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `window.libraryCount()` answers how many books are in the library and how many are still in progress, for a voice assistant or a script. From Grok.
+
 ## 1.16.0 — 2026-11-18
 
 ### Name
