@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `window.searchLibrary(query)` answers a voice or script search of the library by title, author or series in one sentence (up to three matches). From Grok.
+
 ## 1.16.0 — 2026-11-18
 
 ### Name

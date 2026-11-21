@@ -277,6 +277,27 @@ function whatWasIReading() {
   return `You were reading ${recent.title}${by}, ${Math.round(recent.progress?.percent || 0)} percent read.`;
 }
 window.whatWasIReading = whatWasIReading;
+// Voice or script search of the library: "books by Frank Herbert", "search for Dune". Returns one spoken sentence.
+function searchLibrary(query) {
+  if (!query || typeof query !== 'string') return 'Say a title or author to search your library.';
+  const q = query.toLowerCase().trim();
+  if (!q) return 'Say a title or author to search your library.';
+  const matches = books.filter(b => 
+    (b.title && b.title.toLowerCase().includes(q)) || 
+    (b.author && b.author.toLowerCase().includes(q)) ||
+    (b.series && b.series.toLowerCase().includes(q))
+  );
+  if (!matches.length) return `I found no books matching "${query}" in your library.`;
+  const top = matches.slice(0, 3);
+  const list = top.map(b => {
+    const by = b.author && b.author !== 'Unknown author' ? ` by ${b.author}` : '';
+    const pct = Math.round(b.progress?.percent || 0);
+    return `${b.title}${by} (${pct}% read)`;
+  }).join('; ');
+  const more = matches.length > 3 ? ` and ${matches.length - 3} more` : '';
+  return `I found ${matches.length} book${matches.length === 1 ? '' : 's'}: ${list}${more}.`;
+}
+window.searchLibrary = searchLibrary;
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
