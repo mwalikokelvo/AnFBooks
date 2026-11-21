@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- `window.howMuchLeft()` estimates reading time left in the current book (about 1.5 min/page) in one sentence, for a voice assistant or a script. From Grok.
 
 ## 1.16.0 — 2026-11-18
 

@@ -290,6 +290,22 @@ function recommendBookFromLibrary() {
   return `You might enjoy ${pick.title}${by}. ${read ? `You are ${read} percent through it.` : 'You have not started it yet.'}`;
 }
 window.recommendBookFromLibrary = recommendBookFromLibrary;
+// "How much is left?" in one sentence, for a voice assistant or a script: estimated reading time left in the current book.
+function howMuchLeft() {
+  const recent = lastBookInProgress();
+  if (!recent) return "You have no books in progress.";
+  const pages = recent.pages || 0;
+  const pct = Math.min(100, recent.progress?.percent || 0);
+  if (!pages || pct >= 100) return `You are finished with ${recent.title}, or it has no page count.`;
+  const leftPages = Math.round(pages * (100 - pct) / 100);
+  const minutes = Math.round(leftPages * 1.5); // about 1.5 min per page
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const time = hours ? `${hours} hour${hours > 1 ? "s" : ""}${mins ? ` and ${mins} minute${mins > 1 ? "s" : ""}` : ""}` : `${mins} minute${mins > 1 ? "s" : ""}`;
+  return `About ${time} left in ${recent.title}.`;
+}
+window.howMuchLeft = howMuchLeft;
+
 
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
