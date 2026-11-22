@@ -11,6 +11,8 @@
 - Three more one-sentence library answers for a voice assistant or a script: `window.listUnfinished()` (up to three
   unfinished books with their progress), `window.whatToReadNext()` (the Continue reading book, or else the best rated
   book you have not opened) and `window.shelvesSummary()` (your shelves and how many books are on each). From Grok.
+- Those answers never call an unfinished book "100 percent read", and "what to read next" suggests a book read part
+  way with no read date (restored or synced) instead of saying every book is finished.
 
 ## 1.16.0 — 2026-11-18
 

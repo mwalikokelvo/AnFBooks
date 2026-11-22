@@ -344,22 +344,29 @@ function librarySummary() {
 }
 window.librarySummary = librarySummary;
 
+// An unfinished book's progress as spoken: rounded, but never "100 percent" for a book not yet finished.
+const unfinishedPercent = b => Math.min(99, Math.round(b.progress?.percent || 0));
 // "Which books haven't I finished?" in one sentence: up to three unfinished books, the most recently read
 // (then the most recently added) first. From Grok.
 function listUnfinished() {
   const unfinished = books.filter(b => b.status !== 'finished' && (b.progress?.percent || 0) < 100)
     .sort((a,b) => (b.lastRead || 0) - (a.lastRead || 0) || (b.added || 0) - (a.added || 0));
   if (!unfinished.length) return books.length ? 'You have finished every book in your library.' : 'Your library is empty.';
-  const list = unfinished.slice(0, 3).map(b => { const pct = Math.round(b.progress?.percent || 0); return `${b.title}${spokenBy(b)}, ${pct ? `${pct} percent read` : 'not started'}`; }).join('; ');
+  const list = unfinished.slice(0, 3).map(b => { const pct = unfinishedPercent(b); return `${b.title}${spokenBy(b)}, ${pct ? `${pct} percent read` : 'not started'}`; }).join('; ');
   return `You have ${plural(unfinished.length, 'unfinished book')}: ${list}${unfinished.length > 3 ? `; and ${unfinished.length - 3} more` : ''}.`;
 }
 window.listUnfinished = listUnfinished;
 
-// "What should I read next?" in one sentence: the book on the Continue reading card, or else the best rated,
-// then most recently added, book you have not opened yet. From Grok.
+// "What should I read next?" in one sentence: the book on the Continue reading card, else the furthest-read
+// unfinished book with no read date (restored or synced), else the best rated, then most recently added, book you
+// have not opened yet. From Grok.
 function whatToReadNext() {
+  const carryOn = b => { const pct = unfinishedPercent(b); return `Carry on with ${b.title}${spokenBy(b)}${pct ? `, ${pct} percent read` : ''}.`; };
   const recent = lastBookInProgress();
-  if (recent) { const pct = Math.round(recent.progress?.percent || 0); return `Carry on with ${recent.title}${spokenBy(recent)}${pct ? `, ${pct} percent read` : ''}.`; }
+  if (recent) return carryOn(recent);
+  const started = books.filter(b => b.status !== 'finished' && (b.progress?.percent || 0) > 0 && (b.progress?.percent || 0) < 100)
+    .sort((a,b) => (b.progress.percent - a.progress.percent) || (b.added || 0) - (a.added || 0))[0];
+  if (started) return carryOn(started);
   const pick = books.filter(b => b.status !== 'finished' && !b.lastRead && !(b.progress?.percent > 0))
     .sort((a,b) => (b.rating || 0) - (a.rating || 0) || (b.added || 0) - (a.added || 0))[0];
   if (pick) return `Start ${pick.title}${spokenBy(pick)} next.`;
