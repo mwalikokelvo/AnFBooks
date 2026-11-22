@@ -25,6 +25,8 @@ assert.equal(ask([library[2]], 'listUnfinished()'), 'You have 1 unfinished book:
 // A book at 100 percent counts as finished even if its status was never changed.
 assert.equal(ask([library[4], {title:'Done', status:'reading', progress:{percent:100}}], 'listUnfinished()'), 'You have finished every book in your library.');
 assert.equal(ask([], 'listUnfinished()'), 'Your library is empty.');
+// An unfinished book at 99.6 percent is never spoken as 100 percent read.
+assert.equal(ask([{title:'Almost', status:'reading', progress:{percent:99.6}}], 'listUnfinished()'), 'You have 1 unfinished book: Almost, 99 percent read.');
 
 // whatToReadNext: the Continue reading book first, else the best rated unopened book, else the newest.
 assert.equal(ask(library, 'whatToReadNext()'), 'Carry on with Dune Messiah by Frank Herbert, 10 percent read.');
@@ -33,6 +35,10 @@ assert.equal(ask(library.slice(2), 'whatToReadNext()'), 'Start Neuromancer by Wi
 assert.equal(ask([library[3], {...library[2], rating:0}], 'whatToReadNext()'), 'Start Notes next.');
 assert.equal(ask([library[4]], 'whatToReadNext()'), 'You have finished every book in your library.');
 assert.equal(ask([], 'whatToReadNext()'), 'Your library is empty.');
+// A book read part way but with no read date (restored or synced) comes before an unopened one, never "all finished".
+assert.equal(ask([{title:'Synced', status:'reading', progress:{percent:47}}, {title:'Fresh', status:'unread', rating:5}], 'whatToReadNext()'), 'Carry on with Synced, 47 percent read.');
+assert.equal(ask([{title:'Synced', status:'reading', progress:{percent:47}}, library[4]], 'whatToReadNext()'), 'Carry on with Synced, 47 percent read.');
+assert.equal(ask([{title:'Almost', status:'reading', lastRead:5, progress:{percent:99.7}}], 'whatToReadNext()'), 'Carry on with Almost, 99 percent read.');
 
 // shelvesSummary: the library's shelf order, the shelfId field, "shelf"/"shelves", "no books", at most five named.
 const shelves = [{id:'s1', name:'Science fiction'}, {id:'s2', name:'My collection'}, {id:'s3', name:'Poetry'}];
