@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `window.recommendBookFromLibrary()` suggests an unfinished book in one sentence: the best rated one (4 stars or more),
+  or else one you tagged. For a voice assistant or a script. From Grok.
+- More one-sentence library answers for a voice assistant or a script, from Grok: `window.progressOnBook(query)`
+  ("How far am I in Dune?"), `window.searchLibrary(query)` (up to three books by title, author or series),
+  `window.estimatedTimeLeft()` (time left in the book on the Continue reading card, at the tooltips' 1.5 minutes a page)
+  and `window.librarySummary()` (books reading, unread and finished, and the average progress).
+
 ## 1.16.0 — 2026-11-18
 
 ### Name
@@ -18,8 +25,6 @@
   gender, and "Hear this voice" plays its recording. Your private personal voices are unchanged.
 - `window.whatWasIReading()` answers "What was I reading?" in one sentence (the book on the Continue reading card),
   for a voice assistant or a script. From Grok.
-- `window.recommendBookFromLibrary()` suggests an unfinished book in one sentence: the best rated one (4 stars or more),
-  or else one you tagged. For a voice assistant or a script. From Grok.
 - KOReader sync: share EPUB and PDF reading positions with KOReader through a Progress sync server
   (library menu › Library tools & backups › KOReader sync). Off until you enter a server; when another device is further along,
   the reader offers to jump there. Only the book's KOReader ID, page or chapter and percentage are sent;

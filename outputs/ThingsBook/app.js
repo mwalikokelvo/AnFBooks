@@ -291,6 +291,59 @@ function recommendBookFromLibrary() {
 }
 window.recommendBookFromLibrary = recommendBookFromLibrary;
 
+// The book a spoken query names: an exact title first, else a title, author or series containing it,
+// the most recently read first. Used by the voice and script answers below.
+function booksMatching(query) {
+  const q = String(query || '').toLowerCase().trim();
+  if (!q) return [];
+  const found = books.filter(b => [b.title, b.author, b.series].some(v => v && v.toLowerCase().includes(q)));
+  return found.sort((a,b) => (b.title?.toLowerCase() === q) - (a.title?.toLowerCase() === q) || (b.lastRead || 0) - (a.lastRead || 0));
+}
+const spokenBy = book => book.author && book.author !== 'Unknown author' ? ` by ${book.author}` : '';
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+// "How far am I in Dune?" in one sentence, for a voice assistant or a script. From Grok.
+function progressOnBook(query) {
+  if (!String(query || '').trim()) return 'Say the title or author of a book.';
+  const book = booksMatching(query)[0];
+  if (!book) return `I found no book matching "${String(query).trim()}" in your library.`;
+  const pct = Math.round(book.progress?.percent || 0);
+  if (book.status === 'finished' || pct >= 100) return `You finished ${book.title}${spokenBy(book)}.`;
+  return pct ? `You are ${pct} percent through ${book.title}${spokenBy(book)}.` : `You have not started ${book.title}${spokenBy(book)} yet.`;
+}
+window.progressOnBook = progressOnBook;
+
+// "Search my library for Herbert" in one sentence, up to three books by title, author or series. From Grok.
+function searchLibrary(query) {
+  if (!String(query || '').trim()) return 'Say a title or author to search your library.';
+  const found = booksMatching(query);
+  if (!found.length) return `I found no books matching "${String(query).trim()}" in your library.`;
+  const list = found.slice(0, 3).map(b => `${b.title}${spokenBy(b)}, ${Math.round(b.progress?.percent || 0)} percent read`).join('; ');
+  return `I found ${plural(found.length, 'book')}: ${list}${found.length > 3 ? `; and ${found.length - 3} more` : ''}.`;
+}
+window.searchLibrary = searchLibrary;
+
+// "How much longer?" for the book on the Continue reading card, at the library tooltips' 1.5 minutes a page. From Grok.
+function estimatedTimeLeft() {
+  const recent = lastBookInProgress();
+  if (!recent) return 'You have no books in progress.';
+  const minutes = readingMinutesLeft(recent);
+  if (!minutes) return `I do not know how long ${recent.title} has left, because its page count is missing.`;
+  const hours = Math.floor(minutes / 60), rest = minutes % 60;
+  const spoken = [hours && plural(hours, 'hour'), rest && plural(rest, 'minute')].filter(Boolean).join(' ');
+  return `About ${spoken} left in ${recent.title}${spokenBy(recent)}.`;
+}
+window.estimatedTimeLeft = estimatedTimeLeft;
+
+// "How is my library doing?" in one sentence: books by status and the average progress. From Grok.
+function librarySummary() {
+  if (!books.length) return 'Your library is empty.';
+  const count = status => books.filter(b => b.status === status).length;
+  const avg = Math.round(books.reduce((s, b) => s + Math.min(100, b.progress?.percent || 0), 0) / books.length);
+  return `You have ${plural(books.length, 'book')}: ${count('reading')} reading, ${count('unread')} unread and ${count('finished')} finished. Average progress is ${avg} percent.`;
+}
+window.librarySummary = librarySummary;
+
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
@@ -298,7 +351,9 @@ const bookCollator = new Intl.Collator(undefined, {sensitivity:'base', numeric:t
 const timeLeft = book => { const pct = Math.min(100, book.progress?.percent || 0); return book.pages && pct < 100 ? book.pages * (100 - pct) / 100 : Infinity; };
 const statusRank = book => ({reading:0, unread:1, finished:2}[book.status] ?? 3);
 // " · about 3 h 20 min left" from pages and progress (about 1.5 minutes a page); empty when unknown.
-function readingLeft(book) { const pages = timeLeft(book); if (!Number.isFinite(pages)) return ''; const minutes = Math.max(1, Math.round(pages * 1.5)); return ` · about ${minutes >= 60 ? `${Math.floor(minutes / 60)} h ${minutes % 60} min` : `${minutes} min`} left`; }
+// Minutes left at about 1.5 minutes a page; 0 when the page count is unknown.
+function readingMinutesLeft(book) { const pages = timeLeft(book); return Number.isFinite(pages) ? Math.max(1, Math.round(pages * 1.5)) : 0; }
+function readingLeft(book) { const minutes = readingMinutesLeft(book); if (!minutes) return ''; return ` · about ${minutes >= 60 ? `${Math.floor(minutes / 60)} h ${minutes % 60} min` : `${minutes} min`} left`; }
 function libraryShuffle(sortBy, list) { if (sortBy !== 'random') return null; const keys = new Map(); for (const book of list) keys.set(book.id, Math.random()); return keys; }
 function compareBooks(sortBy, a, b, keys) {
   const [field, direction] = sortBy.split('-'), down = direction === 'desc' ? -1 : 1, up = direction === 'asc' ? -1 : 1;
