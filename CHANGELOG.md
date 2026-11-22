@@ -14,6 +14,8 @@
 - Those answers never call an unfinished book "100 percent read", and "what to read next" suggests a book read part
   way with no read date (restored or synced) instead of saying every book is finished.
 - Assistants: added Google Chrome's modern-web-guidance skill in `.agents/skills/` (offline web best-practice guides), with its usage tracking removed. See `PRIVACY-PATCH.md` in that folder.
+- Free AI review on every pull request (`.github/workflows/ai-review.yml`), using OpenRouter's free models, so reviews
+  keep coming when Cursor Bugbot's quota runs out.
 
 ## 1.16.0 — 2026-11-18
 
