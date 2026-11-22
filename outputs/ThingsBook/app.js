@@ -335,6 +335,15 @@ function estimatedTimeLeft() {
 }
 window.estimatedTimeLeft = estimatedTimeLeft;
 
+// "What shelves do I have?" in one sentence, for a voice assistant or a script. From Grok.
+function listShelves() {
+  if (!shelves.length) return 'You have no shelves in your library.';
+  const names = shelves.map(s => s.name).slice(0, 5);
+  const more = shelves.length > 5 ? ` and ${shelves.length - 5} more` : '';
+  return `Your shelves are: ${names.join(', ')}${more}.`;
+}
+window.listShelves = listShelves;
+
 // "How is my library doing?" in one sentence: books by status and the average progress. From Grok.
 function librarySummary() {
   if (!books.length) return 'Your library is empty.';
