@@ -5,12 +5,13 @@ const fs = require('node:fs'), path = require('node:path'), vm = require('node:v
 const assert = require('node:assert/strict');
 const source = fs.readFileSync(path.join(__dirname, '../../outputs/ThingsBook/app.js'), 'utf8').replace(/\r\n/g, '\n');
 const line = start => { const found = source.split('\n').find(l => l.startsWith(start)); assert(found, `${start} is in app.js`); return found + '\n'; };
-const from = source.indexOf('\nfunction booksMatching('), to = source.indexOf('window.librarySummary = librarySummary;');
+const from = source.indexOf('\nfunction booksMatching('), to = source.indexOf('window.shelvesSummary = shelvesSummary;');
 assert(from > 0 && to > from, 'the library answers are in app.js');
-for (const name of ['progressOnBook', 'searchLibrary', 'estimatedTimeLeft', 'librarySummary']) assert(source.includes(`window.${name} = ${name};`));
+for (const name of ['progressOnBook', 'searchLibrary', 'estimatedTimeLeft', 'librarySummary', 'shelvesSummary']) assert(source.includes(`window.${name} = ${name};`));
 const code = line('function lastBookInProgress(') + line('const timeLeft = ') + line('function readingMinutesLeft(') + line('function readingLeft(')
   + source.slice(from, to).replace(/window\.\w+ = \w+;/g, '');
-const ask = (books, call) => { const context = {books}; vm.createContext(context); vm.runInContext(code, context); return vm.runInContext(call, context); };
+const ask = (books, call) => { const context = {books, shelves: []}; vm.createContext(context); vm.runInContext(code, context); return vm.runInContext(call, context); };
+const askWithShelves = (books, shelves, call) => { const context = {books, shelves}; vm.createContext(context); vm.runInContext(code, context); return vm.runInContext(call, context); };
 
 const library = [
   {title:'Dune Messiah', author:'Frank Herbert', series:'Dune', status:'reading', lastRead:9, pages:300, progress:{percent:10}},
@@ -50,3 +51,11 @@ assert.equal(ask(library, 'librarySummary()'), 'You have 5 books: 2 reading, 2 u
 assert.equal(ask([{title:'One', status:'reading', progress:{percent:40}}], 'librarySummary()'), 'You have 1 book: 1 reading, 0 unread and 0 finished. Average progress is 40 percent.');
 assert.equal(ask([], 'librarySummary()'), 'Your library is empty.');
 console.log('library voice answers checks passed.');
+
+// shelvesSummary: lists shelves and counts.
+const shelvesLib = [
+  {id: 's1', name: 'Fiction'},
+  {id: 's2', name: 'Sci-Fi'}
+];
+const booksWithShelves = library.map((b, i) => ({...b, shelf: i < 2 ? 's1' : 's2'}));
+assert.match(askWithShelves(booksWithShelves, shelvesLib, 'shelvesSummary()'), /You have 2 shelves: Fiction with 2 books, Sci-Fi with 3 books\./);

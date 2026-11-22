@@ -344,6 +344,17 @@ function librarySummary() {
 }
 window.librarySummary = librarySummary;
 
+// "What shelves do I have?" in one sentence, for a voice assistant or a script. From Grok.
+function shelvesSummary() {
+  if (!shelves.length) return 'You have no shelves yet. Books are in the main library.';
+  const counts = shelves.map(s => {
+    const n = books.filter(b => b.shelf === s.id).length;
+    return `${s.name} with ${plural(n, 'book')}`;
+  });
+  return `You have ${plural(shelves.length, 'shelf')}: ${counts.join(', ')}.`;
+}
+window.shelvesSummary = shelvesSummary;
+
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.

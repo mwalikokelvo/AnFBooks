@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `window.shelvesSummary()` lists your shelves and how many books are on each, in one sentence, for a voice assistant or a script. From Grok.
+
 - `window.recommendBookFromLibrary()` suggests an unfinished book in one sentence: the best rated one (4 stars or more),
   or else one you tagged. For a voice assistant or a script. From Grok.
 - More one-sentence library answers for a voice assistant or a script, from Grok: `window.progressOnBook(query)`
