@@ -8,6 +8,9 @@
   ("How far am I in Dune?"), `window.searchLibrary(query)` (up to three books by title, author or series),
   `window.estimatedTimeLeft()` (time left in the book on the Continue reading card, at the tooltips' 1.5 minutes a page)
   and `window.librarySummary()` (books reading, unread and finished, and the average progress).
+- Three more one-sentence library answers for a voice assistant or a script: `window.listUnfinished()` (up to three
+  unfinished books with their progress), `window.whatToReadNext()` (the Continue reading book, or else the best rated
+  book you have not opened) and `window.shelvesSummary()` (your shelves and how many books are on each). From Grok.
 
 ## 1.16.0 — 2026-11-18
 
