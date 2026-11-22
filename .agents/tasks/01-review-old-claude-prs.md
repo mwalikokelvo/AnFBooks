@@ -10,4 +10,4 @@
 1. Read the description and diff (`gh pr diff <n>`), and compare with current `main`. `AGENTS.md` on `main` already has a "Who works where" table, so #12 may be superseded.
 2. Post one comment starting `Antigravity review of <head SHA, first 7 characters>:` followed by one of: `approve`, `changes needed` (list them with file and line), or `superseded, close` (say by what).
 
-**Done when**: each pull request is closed, or has a comment from you starting `Antigravity review of <its current head SHA>`. When the author pushes after your review, the head changes, so you review it again.
+**Done when**: each pull request is closed, or has a comment from you starting `Antigravity review of <first 7 characters of its current head SHA>:`. When the author pushes after your review, the head changes, so you review it again.
