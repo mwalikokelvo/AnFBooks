@@ -1,4 +1,4 @@
-# Note for every assistant working on ThingsBook
+# Note for every assistant working on AnF Books (formerly ThingsBook)
 
 From Claude, at the owner's request (13 November 2026).
 
@@ -36,3 +36,38 @@ fix the file, never the test.
 
 Never commit private material: personal voice packs or recordings, books, backups, or the Android
 signing key. This repository is public.
+
+## Engineering rules (owner's master handoff, 17 November 2026)
+
+These apply to every assistant. `CLAUDE.md`, `GEMINI.md` and `.github/copilot-instructions.md` all
+point here, so this is the one rulebook.
+
+- **Pure Rust in `core/`.** No OpenSSL or other C libraries that break the Linux CI, Windows or the
+  Android UniFFI build. Encryption stays as it is (AES-256-GCM with Argon2 over SQLite, already pure
+  Rust); do not switch the library to SQLCipher, which would mean migrating everyone's encrypted data.
+  Any Rust networking uses `rustls`.
+- **No telemetry.** No analytics or tracking SDKs. Network calls only to servers the owner configured
+  (OPDS catalogs, a KOReader sync server).
+- **Push, not polling.** No `setInterval` or `requestAnimationFrame` loops, and no sleep loops in Rust,
+  to watch for state changes. React to events (page turns, file writes, IPC messages).
+- **Replace in place.** No `*_v2` copies, compatibility shims or dead code kept "for later". Fix the
+  broken code where it is, update every caller in the same commit, delete what is unused.
+  `cargo clippy --all-targets -- -D warnings` must pass in `core/` (CI checks it).
+- **Speed budgets** (checked by tests): EPUB 2/3 open, spine parse and chapter load under 150 ms;
+  OPDS feed parse under 100 ms; KOReader sync payload diff/merge under 50 ms.
+
+## Who works where
+
+| Assistant | Branch prefix | Good for | Limit |
+|---|---|---|---|
+| Hermes (free, local) | `hermes/` | Docs, test scaffolds, `cargo check` in `core/` | Never a full build on the 8 GB PC |
+| Antigravity / Gemini | `gemini/` or `agy/` | Reader UI, EPUB/OPDS test fixtures | One Rust build on the PC at a time |
+| Claude Code | `claude/` | Rust core, storage, UniFFI boundaries, reviews | Checks go to the `verifier` agent |
+| Grok / Cursor (cloud) | `grok/`, `cursor/` | Large refactors, full test runs | 2 tries per failure |
+| Copilot (GitHub) | `copilot/` | Small bounded fixes with named files and a test command | No open-ended features |
+| Codex | `codex/` | Rust, CI, packaging; reviews pull requests | Never merges its own |
+
+- **Two strikes.** If a build, test or speed check fails twice on the same thing, stop, leave the
+  branch, and write down what failed instead of retrying.
+- **Before a pull request**, run the checks above (Claude Code: hand them to `.claude/agents/verifier.md`).
+- Reviews: never let a review comment trigger an automatic commit, and never have bots reply to bots.

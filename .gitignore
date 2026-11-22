@@ -21,6 +21,8 @@
 *.m4a
 *.wav
 *.flac
+# Except the Kevo voice pack: 13 samples the owner made or designed and published with AnF (14 Nov 2026).
+!outputs/ThingsBook/vendor/voice-pack/*.mp3
 *.safetensors
 *.onnx
 *.pt

@@ -6,6 +6,7 @@ const {randomUUID}=require('node:crypto');
 const ORIGIN='thingsbook://library';
 const {NativeCore}=require('./native-core.cjs');
 const {voiceCatalog}=require('./voice-catalog.cjs');
+const kosync=require('./kosync.cjs');
 const nativeCore=new NativeCore(app.isPackaged?path.join(process.resourcesPath,'thingsbook-core.exe'):path.join(__dirname,'native/thingsbook-core.exe'));
 protocol.registerSchemesAsPrivileged([{scheme:'thingsbook',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true,corsEnabled:true}}]);
 const profile=process.env.THINGSBOOK_TEST_PROFILE || path.join(process.env.LOCALAPPDATA || app.getPath('appData'),'ThingsBookDesktop');
@@ -88,6 +89,7 @@ function speechProcess(mode,payload){return new Promise((resolve,reject)=>{
 let voicesCache;
 function configureIpc(){
  ipcMain.handle('thingsbook:provider',(event,value)=>{if(!trusted(event)||!value||JSON.stringify(value).length>10000)throw new Error('Invalid provider request');return zlibraryProvider.call(value);});
+ ipcMain.handle('thingsbook:kosync',(event,value)=>{if(!trusted(event)||!value||JSON.stringify(value).length>4000)throw new Error('Invalid sync request');return kosync.request(value);});
  ipcMain.on('thingsbook:provider-cancel',event=>{if(trusted(event))zlibraryProvider.cancel();});
  ipcMain.handle('thingsbook:protect-access',(event,secret)=>{
   if(!trusted(event)||typeof secret!=='string'||!secret.length||secret.length>4096||!safeStorage.isEncryptionAvailable()||process.platform!=='win32')throw new Error('Windows device protection is unavailable');
@@ -129,12 +131,12 @@ async function start(){
    const allow=['index.html','style.css','app.js','reader.js','reader.css','pdf.worker.mjs'];
    if(!allow.includes(relative)&&!['vendor/','cmaps/','standard_fonts/','wasm/'].some(prefix=>relative.startsWith(prefix)))return new Response('Not found',{status:404});
    const target=path.resolve(root,relative);if(!target.startsWith(root+path.sep)||relative.includes('\\'))return new Response('Blocked',{status:403});
-   const mime=relative.endsWith('.css')?'text/css':/\.m?js$/.test(relative)?'text/javascript':relative.endsWith('.html')?'text/html':relative.endsWith('.wasm')?'application/wasm':'application/octet-stream';
+   const mime=relative.endsWith('.css')?'text/css':/\.m?js$/.test(relative)?'text/javascript':relative.endsWith('.html')?'text/html':relative.endsWith('.wasm')?'application/wasm':relative.endsWith('.mp3')?'audio/mpeg':'application/octet-stream';
    const body=await fs.readFile(target);return new Response(request.method==='HEAD'?null:body,{headers:{'Content-Type':mime+(mime.startsWith('text/')?'; charset=utf-8':''),'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   }catch{return new Response('Not found',{status:404});}
  });
  configureIpc();
- window=new BrowserWindow({width:1280,height:880,minWidth:760,minHeight:620,show:false,title:'ThingsBook',backgroundColor:'#f5f1e9',icon:path.join(__dirname,'icon.ico'),webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,webviewTag:false,devTools:!!process.env.THINGSBOOK_TEST_PROFILE}});
+ window=new BrowserWindow({width:1280,height:880,minWidth:760,minHeight:620,show:false,title:'AnF Books',backgroundColor:'#f5f1e9',icon:path.join(__dirname,'icon.ico'),webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,webviewTag:false,devTools:!!process.env.THINGSBOOK_TEST_PROFILE}});
  Menu.setApplicationMenu(null);
  const ses=window.webContents.session;
  ses.setPermissionRequestHandler((wc,permission,callback)=>callback(wc===window.webContents&&ownUrl(wc.getURL())&&['persistent-storage','fullscreen'].includes(permission)));
@@ -184,7 +186,7 @@ async function start(){
 }
 if(!app.requestSingleInstanceLock())app.quit();else{
  app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore();window.show();window.focus();}});
- app.whenReady().then(start).catch(error=>{dialog.showErrorBox('ThingsBook could not open',error.message);quitting=true;app.quit();});
+ app.whenReady().then(start).catch(error=>{dialog.showErrorBox('AnF Books could not open',error.message);quitting=true;app.quit();});
  app.on('before-quit',()=>{zlibraryProvider.cancel();cancelSpeech();if(voiceListJob){voiceListJob.kill();voiceListJob=null;}nativeCore.cancel();});
  app.on('window-all-closed',()=>app.quit());
 }

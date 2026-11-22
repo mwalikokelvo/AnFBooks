@@ -9,12 +9,12 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
-[assembly:AssemblyTitle("ThingsBook Independent Desktop")]
-[assembly:AssemblyProduct("ThingsBook")]
-[assembly:AssemblyVersion("1.15.1.0")]
-[assembly:AssemblyFileVersion("1.15.1.0")]
+[assembly:AssemblyTitle("AnF Books Independent Desktop")]
+[assembly:AssemblyProduct("AnF Books")]
+[assembly:AssemblyVersion("1.16.0.0")]
+[assembly:AssemblyFileVersion("1.16.0.0")]
 internal static class IndependentLauncher {
- const string Version="1.15.1";
+ const string Version="1.16.0";
  [STAThread] static void Main(){
   Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
   string baseRoot=Environment.GetEnvironmentVariable("THINGSBOOK_TEST_RUNTIME");
@@ -23,10 +23,10 @@ internal static class IndependentLauncher {
   try{
    Directory.CreateDirectory(baseRoot);
    using(var mutex=new Mutex(false,"Local\\ThingsBookIndependentRuntime1125")){
-    if(!mutex.WaitOne(TimeSpan.FromMinutes(2)))throw new Exception("ThingsBook is preparing its runtime in another window. Try again shortly.");
+    if(!mutex.WaitOne(TimeSpan.FromMinutes(2)))throw new Exception("AnF Books is preparing its runtime in another window. Try again shortly.");
     try{
      if(!File.Exists(Path.Combine(runtime,".complete"))||!File.Exists(target)){
-      using(var form=new Form {Text="Preparing ThingsBook",Width=400,Height=150,StartPosition=FormStartPosition.CenterScreen,FormBorderStyle=FormBorderStyle.FixedDialog,ControlBox=false})
+      using(var form=new Form {Text="Preparing AnF Books",Width=400,Height=150,StartPosition=FormStartPosition.CenterScreen,FormBorderStyle=FormBorderStyle.FixedDialog,ControlBox=false})
       using(var label=new Label {Text="Preparing your private reading room…",Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleCenter,Font=new Font("Segoe UI",11)})
       using(var bar=new ProgressBar {Dock=DockStyle.Bottom,Height=22}){
        form.Controls.Add(label);form.Controls.Add(bar);if(Environment.GetEnvironmentVariable("THINGSBOOK_TEST_HIDDEN")!="1")form.Show();

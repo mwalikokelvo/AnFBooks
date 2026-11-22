@@ -1,4 +1,4 @@
-"""Serve only ThingsBook's static UI on a fixed loopback origin."""
+"""Serve only AnF Books' static UI on a fixed loopback origin."""
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -18,7 +18,7 @@ class Handler(SimpleHTTPRequestHandler):
         '.json':'application/json', '.wasm':'application/wasm', '.svg':'image/svg+xml', '.png':'image/png',
         '.jpg':'image/jpeg', '.ico':'image/x-icon', '.ttf':'font/ttf', '.otf':'font/otf', '.woff':'font/woff',
         '.woff2':'font/woff2', '.txt':'text/plain', '.md':'text/plain', '.bcmap':'application/octet-stream',
-        '.pfb':'application/octet-stream', '.gz':'application/gzip', '.traineddata':'application/octet-stream'}
+        '.pfb':'application/octet-stream', '.gz':'application/gzip', '.traineddata':'application/octet-stream', '.mp3':'audio/mpeg'}
     def allowed(self):
         route = urlsplit(self.path).path
         target = (ROOT / route.lstrip('/')).resolve()
@@ -49,10 +49,10 @@ if __name__ == '__main__':
     try:
         server = ThreadingHTTPServer((HOST, PORT), Handler)
     except OSError:
-        print(f'Port {PORT} is already in use. If ThingsBook is running, open {URL}.')
+        print(f'Port {PORT} is already in use. If AnF Books is running, open {URL}.')
         print('Otherwise, close the program using this port and try again.')
         sys.exit(1)
-    print(f'ThingsBook is ready at {URL}\nKeep this window open while reading. Press Ctrl+C to stop.')
+    print(f'AnF Books is ready at {URL}\nKeep this window open while reading. Press Ctrl+C to stop.')
     if '--no-browser' not in sys.argv:
         webbrowser.open(URL)
     try:

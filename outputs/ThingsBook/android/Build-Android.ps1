@@ -2,7 +2,7 @@ param(
   [string]$ToolsRoot = 'C:\Users\mwali\Documents\Codex\2026-10-03\https-github-com-louis-cfm-coucou\work\android-tools',
   [string]$BuildRoot = '',
   [string]$SigningRoot = '',
-  [string]$Version = '1.15.1',
+  [string]$Version = '1.16.0',
   [int]$VersionCode = 11205
 )
 $ErrorActionPreference = 'Stop'
@@ -18,7 +18,7 @@ $buildTools = Join-Path $ToolsRoot 'sdk/build-tools/35.0.0'
 $platform = Join-Path $ToolsRoot 'sdk/platforms/android-35/android.jar'
 $keystore = Join-Path $SigningRoot 'thingsbook-release.jks'
 $passwordFile = Join-Path $SigningRoot 'password.txt'
-if (!(Test-Path -LiteralPath $keystore)) { throw 'ThingsBook signing key is missing. Use the original key when updating an installed version.' }
+if (!(Test-Path -LiteralPath $keystore)) { throw 'AnF Books signing key is missing. Use the original key when updating an installed version.' }
 function Check-Step([string]$Name) { if ($LASTEXITCODE) { throw "$Name failed ($LASTEXITCODE)." } }
 New-Item -ItemType Directory -Force -Path $BuildRoot,(Join-Path $BuildRoot 'assets/web'),(Join-Path $BuildRoot 'classes'),(Join-Path $BuildRoot 'dex') | Out-Null
 foreach ($asset in @('index.html','style.css','app.js','reader.js','reader.css','pdf.worker.mjs','vendor','cmaps','standard_fonts','wasm')) { Copy-Item -LiteralPath (Join-Path $appRoot $asset) -Destination (Join-Path $BuildRoot 'assets/web') -Recurse -Force }
@@ -39,7 +39,7 @@ Check-Step 'Android bytecode'
 Check-Step 'Android bytecode packaging'
 & (Join-Path $buildTools 'zipalign.exe') -f -p 4 (Join-Path $BuildRoot 'unsigned.apk') (Join-Path $BuildRoot 'aligned.apk')
 Check-Step 'Android alignment'
-$apk = Join-Path $outputRoot "ThingsBook-Android-$Version.apk"
+$apk = Join-Path $outputRoot "AnF-Books-Android-$Version.apk"
 & (Join-Path $buildTools 'apksigner.bat') sign --ks $keystore --ks-key-alias thingsbook --ks-pass "file:$passwordFile" --out $apk (Join-Path $BuildRoot 'aligned.apk')
 Check-Step 'Android signing'
 & (Join-Path $buildTools 'apksigner.bat') verify --verbose $apk

@@ -1,9 +1,9 @@
 {
   "name": "thingsbook-desktop",
-  "productName": "ThingsBook",
-  "version": "1.15.1",
+  "productName": "AnF Books",
+  "version": "1.16.0",
   "description": "A private offline reading room",
-  "author": "ThingsBook",
+  "author": "AnF Books",
   "license": "UNLICENSED",
   "main": "main.cjs",
   "scripts": {

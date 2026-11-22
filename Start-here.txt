@@ -1,22 +1,33 @@
-ThingsBook 1.15.1 - start here
+AnF Books 1.16.0 - start here
 
-Windows: ThingsBook-Independent-1.15.1.exe
-Android: ThingsBook-Android-1.15.1.apk
+AnF Books was called ThingsBook up to 1.15.1. It is the same app: update over it as usual, and your
+library, backups and voice pack carry over. Releases up to 1.15.1 keep the old file names.
+
+Windows: AnF-Books-Independent-1.16.0.exe
+Android: AnF-Books-Android-1.16.0.apk
 Both are on the GitHub Releases page with checksums. Update Android over the existing
 installation; do not uninstall or clear app data, because that removes the private on-device
 library. Keep your existing private voice pack. The APK is signed with the original key.
 Full history of every version: CHANGELOG.md.
 
-What 1.14.3 adds (details in CHANGELOG.md):
+What 1.16.0 adds (details in CHANGELOG.md):
+- The new name, AnF Books, on Windows, Android and in the release file names.
+- The Kevo voice pack: AnF's 13 voices in Voice ("Kevo pack: ..."), each read with the best-matching
+  device voice, with "Hear this voice" to play its recording.
+- KOReader sync of EPUB and PDF reading positions through a Progress sync server you choose.
+- Book tooltips show when a book was last read; a "Has file" name sort; "What was I reading?" for a
+  voice assistant or script.
+
+What 1.14.3 added:
 - Long listening with the screen off: a PDF page that was being drawn when the screen turned off
-  now opens, and on Windows the PC no longer suspends ThingsBook while reading aloud.
+  now opens, and on Windows the PC no longer suspends AnF Books while reading aloud.
 - 1.14.2: PDFs keep reading past a page end with the screen off (Android); "Keep reading in
   background" is on by default (turn it off in Voice); Details in the reader heading edits a
   book's title and author; chapter names come from the table of contents.
 - 1.14.1: turning the page no longer stops reading aloud; personal voices start faster after the
   first time (Windows) and say dates and numbers as words; cleaner PDF text; clean titles and
   authors in the library; a Study tab and a side panel for Tools on wide screens.
-- 1.14.0: books already in the library are not imported twice; RTF import; Open with ThingsBook on
+- 1.14.0: books already in the library are not imported twice; RTF import; Open with AnF Books on
   Android.
 - 1.13.0: Kindle (MOBI/AZW3), Word, OpenDocument, FictionBook, comic (.cbz), Markdown and
   web-page import; PDFs up to 500 MB (other formats 100 MB); library search covers PDF text;

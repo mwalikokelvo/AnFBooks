@@ -2,10 +2,58 @@
 
 ## Unreleased
 
-### Tooling
-- **Free AI review on pull requests** (`.github/workflows/ai-review.yml`): reviews each PR with
-  OpenRouter's free models so reviews keep coming when
-  Cursor Bugbot's quota runs out.
+- `window.recommendBookFromLibrary()` suggests an unfinished book in one sentence: the best rated one (4 stars or more),
+  or else one you tagged. For a voice assistant or a script. From Grok.
+- More one-sentence library answers for a voice assistant or a script, from Grok: `window.progressOnBook(query)`
+  ("How far am I in Dune?"), `window.searchLibrary(query)` (up to three books by title, author or series),
+  `window.estimatedTimeLeft()` (time left in the book on the Continue reading card, at the tooltips' 1.5 minutes a page)
+  and `window.librarySummary()` (books reading, unread and finished, and the average progress).
+- Three more one-sentence library answers for a voice assistant or a script: `window.listUnfinished()` (up to three
+  unfinished books with their progress), `window.whatToReadNext()` (the Continue reading book, or else the best rated
+  book you have not opened) and `window.shelvesSummary()` (your shelves and how many books are on each). From Grok.
+- Those answers never call an unfinished book "100 percent read", and "what to read next" suggests a book read part
+  way with no read date (restored or synced) instead of saying every book is finished.
+- Assistants: added Google Chrome's modern-web-guidance skill in `.agents/skills/` (offline web best-practice guides), with its usage tracking removed. See `PRIVACY-PATCH.md` in that folder.
+
+## 1.16.0 — 2026-11-18
+
+### Name
+- ThingsBook is now **AnF Books**: the window and app titles, the Android app name and share-sheet entry,
+  messages, the KOReader device name for new sync setups, backup and notes file names, and the release
+  files (`AnF-Books-Independent-<version>.exe`, `AnF-Books-Android-<version>.apk`). It installs over
+  ThingsBook as before: the Android app ID, signing key, storage, settings and the `.thingsbook` backup
+  format are unchanged, so the library, backups and voice pack carry over.
+
+### New
+- **Kevo voice pack:** the 13 voices from AnF (Kevo, Nath, Burt, Dav, Cart, Bria, Jean, Aust, Bra, Lil,
+  Seraf, Husky and Grandpa) now come with AnF Books on Windows, Android and in the browser. Pick one
+  in Voice ("Kevo pack: …"): it reads with the installed device voice that best matches its accent and
+  gender, and "Hear this voice" plays its recording. Your private personal voices are unchanged.
+- `window.whatWasIReading()` answers "What was I reading?" in one sentence (the book on the Continue reading card),
+  for a voice assistant or a script. From Grok.
+- KOReader sync: share EPUB and PDF reading positions with KOReader through a Progress sync server
+  (library menu › Library tools & backups › KOReader sync). Off until you enter a server; when another device is further along,
+  the reader offers to jump there. Only the book's KOReader ID, page or chapter and percentage are sent;
+  the password is not stored. The Windows and Android apps make the request (not the browser version).
+
+### Development
+- `core/tests/latency.rs` checks the latency budgets on a release build in CI: opening a 300-chapter
+  EPUB 2 or 3 and loading its first chapter under 150 ms, parsing a 200-entry OPDS feed under 100 ms.
+
+### Library
+- A book's tooltip shows its series, shelf, the date it was added and when it was last read.
+- New sorts: "Has file name first" and "No file name first".
+
+### Repairs
+- `app.js` was cut short by a direct push to `main` (commits 06a8249 and 36fbb7a, 17 November); restored in full with only the intended tooltip line kept.
+
+### For builders
+- **One rulebook for every assistant:** `AGENTS.md` now holds the engineering rules (pure Rust core,
+  no telemetry, no polling, replace in place, speed budgets) and who works where. `CLAUDE.md`,
+  `GEMINI.md` and Copilot point to it. A `verifier` agent runs the checks before a pull request, and CI
+  now fails on Rust lint warnings.
+- Free AI review on every pull request (`.github/workflows/ai-review.yml`), using OpenRouter's free models, so reviews
+  keep coming when Cursor Bugbot's quota runs out.
 
 ## 1.15.1 — 2026-11-13
 

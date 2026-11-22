@@ -10,7 +10,7 @@ ROOT=Path(__file__).resolve().parents[2]
 # The EXE of the version being built (work/thingsbook-desktop/package.json), or the path given.
 import sys
 VERSION=json.loads((ROOT/'work/thingsbook-desktop/package.json').read_text(encoding='utf-8'))['version']
-EXE=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else ROOT/f'outputs/ThingsBook-Independent-{VERSION}.exe'
+EXE=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else ROOT/f'outputs/AnF-Books-Independent-{VERSION}.exe'
 if not EXE.is_file():raise SystemExit(f'Packaged EXE not found: {EXE}')
 folder=ROOT/'work'/('packaged-smoke-1125-'+uuid.uuid4().hex)
 folder.mkdir()
@@ -25,7 +25,7 @@ if not result.exists():raise SystemExit('Packaged app did not return its smoke r
 data=json.loads(result.read_text(encoding='utf-8'))
 assert not data.get('error'),data
 assert all(data.get(name) for name in ('secure','storage','crypto','desktop','pdf','epub')),data
-assert data['title']=='ThingsBook '+chr(183)+' Your private reading room',data
+assert data['title']=='AnF Books '+chr(183)+' Your private reading room',data
 assert data['version']==VERSION and all(data['native'].values()),data
 reopen=folder/'restart.json'
 env.pop('THINGSBOOK_SMOKE_NATIVE')

@@ -1,8 +1,9 @@
 'use strict';
 const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('ThingsBookDesktop',{
- version:'1.15.1',
+ version:'1.16.0',
  providerRequest:value=>ipcRenderer.invoke('thingsbook:provider',value),
+ kosync:value=>ipcRenderer.invoke('thingsbook:kosync',value),
  cancelProvider:()=>ipcRenderer.send('thingsbook:provider-cancel'),
  protectAccess:secret=>ipcRenderer.invoke('thingsbook:protect-access',secret),
  revealAccess:wrapped=>ipcRenderer.invoke('thingsbook:reveal-access',wrapped),

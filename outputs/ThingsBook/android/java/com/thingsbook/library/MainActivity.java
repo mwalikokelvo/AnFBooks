@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
   private static final class SharedFile{Uri uri;String name;long size;long expires;boolean listed;}
   private final Map<String,SharedFile> shared=new LinkedHashMap<>();
   private final java.util.concurrent.ExecutorService providerWorker=java.util.concurrent.Executors.newSingleThreadExecutor();
+  private final java.util.concurrent.ExecutorService syncWorker=java.util.concurrent.Executors.newSingleThreadExecutor();
   private ValueCallback<Uri[]> picker;
   private boolean closing;
   private boolean pdfActive;
@@ -74,7 +75,7 @@ public class MainActivity extends Activity {
         String path=u.getPath();if("/shared-file".equals(path))return "GET".equals(r.getMethod())&&u.getQueryParameterNames().size()==1?sharedFile(u.getQueryParameter("ticket")):blocked();if("/personal-audio".equals(path))return "GET".equals(r.getMethod())&&u.getQueryParameterNames().size()==1?personal.serve(u.getQueryParameter("ticket"),r.getRequestHeaders().get("Range")):blocked();if("/provider-file".equals(path))return "GET".equals(r.getMethod())&&u.getQueryParameterNames().size()==1?provider.download(u.getQueryParameter("ticket")):blocked();if("/catalog".equals(path))return "GET".equals(r.getMethod())?BookCatalog.fetch(u):blocked();if("/".equals(path))path="/index.html";
         if(path==null||path.contains("..")||path.contains("\\"))return blocked();
         if(!Arrays.asList("/index.html","/style.css","/app.js","/reader.js","/reader.css","/pdf.worker.mjs").contains(path)&&!path.startsWith("/vendor/")&&!path.startsWith("/cmaps/")&&!path.startsWith("/wasm/")&&!path.startsWith("/standard_fonts/"))return blocked();
-        String mime=path.endsWith(".js")||path.endsWith(".mjs")?"text/javascript":path.endsWith(".css")?"text/css":path.endsWith(".wasm")?"application/wasm":path.endsWith(".html")?"text/html":"application/octet-stream";
+        String mime=path.endsWith(".js")||path.endsWith(".mjs")?"text/javascript":path.endsWith(".css")?"text/css":path.endsWith(".wasm")?"application/wasm":path.endsWith(".html")?"text/html":path.endsWith(".mp3")?"audio/mpeg":"application/octet-stream";
         try{return new WebResourceResponse(mime,"UTF-8",getAssets().open("web"+path));}catch(IOException e){return blocked();}
       }
     });
@@ -84,7 +85,7 @@ public class MainActivity extends Activity {
         try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*");i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,params.getMode()==FileChooserParams.MODE_OPEN_MULTIPLE);startActivityForResult(i,1);}
         catch(Exception e){picker.onReceiveValue(null);picker=null;notice("A document picker could not be opened.");}return true;
       }
-      @Override public boolean onJsConfirm(WebView w,String url,String message,JsResult result){new AlertDialog.Builder(MainActivity.this).setTitle("ThingsBook").setMessage(message).setPositiveButton("Continue",(d,which)->result.confirm()).setNegativeButton("Cancel",(d,which)->result.cancel()).setOnCancelListener(d->result.cancel()).show();return true;}
+      @Override public boolean onJsConfirm(WebView w,String url,String message,JsResult result){new AlertDialog.Builder(MainActivity.this).setTitle("AnF Books").setMessage(message).setPositiveButton("Continue",(d,which)->result.confirm()).setNegativeButton("Cancel",(d,which)->result.cancel()).setOnCancelListener(d->result.cancel()).show();return true;}
     });
     audioManager=(android.media.AudioManager)getSystemService(AUDIO_SERVICE);speechFocus=new android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN).setAudioAttributes(new android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_MEDIA).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build()).setWillPauseWhenDucked(true).setOnAudioFocusChangeListener(change->{if(change<0){if(speech!=null)speech.stop();mediaCommand("pause");}}).build();
     if(android.os.Build.VERSION.SDK_INT>=33)registerReceiver(noisy,new android.content.IntentFilter(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY),android.content.Context.RECEIVER_NOT_EXPORTED);else registerReceiver(noisy,new android.content.IntentFilter(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY));
@@ -97,7 +98,7 @@ public class MainActivity extends Activity {
   private void receive(Intent intent){
     if(intent==null)return;String action=intent.getAction();List<Uri> uris=new ArrayList<>();
     if(Intent.ACTION_VIEW.equals(action)&&intent.getData()!=null)uris.add(intent.getData());
-    else if(Intent.ACTION_SEND.equals(action)){Uri u=intent.getParcelableExtra(Intent.EXTRA_STREAM);if(u!=null)uris.add(u);else if(intent.hasExtra(Intent.EXTRA_TEXT))notice("ThingsBook imports shared files; this share contained only text.");}
+    else if(Intent.ACTION_SEND.equals(action)){Uri u=intent.getParcelableExtra(Intent.EXTRA_STREAM);if(u!=null)uris.add(u);else if(intent.hasExtra(Intent.EXTRA_TEXT))notice("AnF Books imports shared files; this share contained only text.");}
     else if(Intent.ACTION_SEND_MULTIPLE.equals(action)){ArrayList<Uri> list=intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);if(list!=null)uris.addAll(list);}
     if(uris.isEmpty())return;
     synchronized(shared){
@@ -151,6 +152,11 @@ public class MainActivity extends Activity {
       final long dispatchEpoch=provider.generation();providerWorker.execute(()->{String answer;try{answer=new JSONObject().put("value",provider.call(new JSONObject(json),dispatchEpoch)).toString();}catch(Exception e){try{answer=new JSONObject().put("error",e instanceof IOException?e.getMessage():"Provider request could not finish.").toString();}catch(Exception ignored){answer="{}";}}final String result=answer;runOnUiThread(()->{if(!closing)web.evaluateJavascript("window.ThingsProviderBridge && window.ThingsProviderBridge.receive("+JSONObject.quote(id)+","+JSONObject.quote(result)+")",null);});});
     }
 
+    // KOReader progress sync (vendor/kosync.js): only to the https server the owner entered.
+    @JavascriptInterface public void kosyncRequest(String id,String json){
+      if(id==null||!id.matches("[a-zA-Z0-9-]{1,80}")||json==null||json.length()>4000)return;
+      syncWorker.execute(()->{String answer;try{answer=KoreaderSync.request(new JSONObject(json));}catch(Exception e){answer="{\"error\":\"Invalid sync request.\"}";}final String result=answer;runOnUiThread(()->{if(!closing)web.evaluateJavascript("window.ThingsKosync && window.ThingsKosync.receive("+JSONObject.quote(id)+","+JSONObject.quote(result)+")",null);});});
+    }
     @JavascriptInterface public String protectAccess(String secret) { return DeviceAccess.protect(secret); }
     @JavascriptInterface public String revealAccess(String wrapped) { return DeviceAccess.reveal(wrapped); }
     @JavascriptInterface public boolean acquireSpeechFocus(){return audioManager!=null&&speechFocus!=null&&audioManager.requestAudioFocus(speechFocus)==android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED;}
@@ -200,5 +206,5 @@ public class MainActivity extends Activity {
   }
   @Override protected void onResume(){super.onResume();stopped=false;if(web!=null)web.evaluateJavascript("window.nativeSpeechReady && window.nativeSpeechReady()",null);}
   @Override protected void onStop(){super.onStop();stopped=true;if(!backgroundRunning&&picker==null&&!personalPicker&&staged==null&&!pdfActive&&web!=null){if(provider!=null)provider.cancel();if(personal!=null)personal.stop(true);web.evaluateJavascript("window.nativeLock && window.nativeLock()",null);}}
-  @Override protected void onDestroy(){closing=true;try{unregisterReceiver(noisy);}catch(Exception ignored){}if(audioManager!=null&&speechFocus!=null)audioManager.abandonAudioFocusRequest(speechFocus);stopService(new Intent(this,ListeningService.class));if(current.get()==this)current.clear();if(personal!=null)personal.close();if(provider!=null)provider.cancel();providerWorker.shutdownNow();if(picker!=null)picker.onReceiveValue(null);localFiles.cancelTransfer();if(speech!=null){speech.stop();speech.shutdown();}if(web!=null)web.destroy();super.onDestroy();}
+  @Override protected void onDestroy(){closing=true;try{unregisterReceiver(noisy);}catch(Exception ignored){}if(audioManager!=null&&speechFocus!=null)audioManager.abandonAudioFocusRequest(speechFocus);stopService(new Intent(this,ListeningService.class));if(current.get()==this)current.clear();if(personal!=null)personal.close();if(provider!=null)provider.cancel();providerWorker.shutdownNow();syncWorker.shutdownNow();if(picker!=null)picker.onReceiveValue(null);localFiles.cancelTransfer();if(speech!=null){speech.stop();speech.shutdown();}if(web!=null)web.destroy();super.onDestroy();}
 }
