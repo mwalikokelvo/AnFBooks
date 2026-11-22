@@ -357,6 +357,17 @@ function listUnfinished() {
 }
 window.listUnfinished = listUnfinished;
 
+// "Suggest a random unfinished book" in one sentence. From Grok.
+function randomUnfinishedBook() {
+  const unfinished = books.filter(b => b.status !== "finished" && (b.progress?.percent || 0) < 100);
+  if (!unfinished.length) return books.length ? "You have finished every book in your library." : "Your library is empty.";
+  const pick = unfinished[Math.floor(Math.random() * unfinished.length)];
+  const pct = unfinishedPercent(pick);
+  return `How about ${pick.title}${spokenBy(pick)}${pct ? `, ${pct} percent read` : ", not started"}?`;
+}
+window.randomUnfinishedBook = randomUnfinishedBook;
+
+
 // "What should I read next?" in one sentence: the book on the Continue reading card, else the furthest-read
 // unfinished book with no read date (restored or synced), else the best rated, then most recently added, book you
 // have not opened yet. From Grok.

@@ -324,3 +324,5 @@ storage and backups. Install over 1.12.5; your library is converted in the backg
 - Windows: run the Electron/runtime checks (`work/tests/check-1125.py`) and the release verifier.
 - Android: rebuild the APK, install over 1.12.5 without uninstalling, then import a book, back up and
   restore. Android saves at most 1 GB per export (`MAX_TRANSFER`), which also caps backup size there.
+
+- `window.randomUnfinishedBook()` suggests a random unfinished book in one sentence. For a voice assistant or a script. From Grok.
