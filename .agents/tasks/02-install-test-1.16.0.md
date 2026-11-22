@@ -12,4 +12,4 @@
 
 **Report**: a dated entry in a new `HANDOFF.md` at the repository root (create it; one heading `# AnF Books handoff` above your entry): what you checked, what worked, what didn't, what you deleted. Open a pull request with only that file. Write "installed on the PC" only for what you actually ran.
 
-**Done when**: a pull request from `agy/install-test-1.16.0` is open.
+**Done when**: a pull request from `agy/install-test-1.16.0` exists (open, merged or closed): `gh pr list --head agy/install-test-1.16.0 --state all`.
