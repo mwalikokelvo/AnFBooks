@@ -321,6 +321,42 @@ function searchLibrary(query) {
   const list = found.slice(0, 3).map(b => `${b.title}${spokenBy(b)}, ${Math.round(b.progress?.percent || 0)} percent read`).join('; ');
   return `I found ${plural(found.length, 'book')}: ${list}${found.length > 3 ? `; and ${found.length - 3} more` : ''}.`;
 }
+
+// Voice read-aloud of the current or selected book page/excerpt (Web Speech API, local).
+function startReadAloud(query) {
+  const book = query ? books.find(b => (b.title + ' ' + b.author).toLowerCase().includes(query.toLowerCase())) : lastBookInProgress();
+  if (!book) return 'No book found to read aloud.';
+  const text = book.excerpt || book.title + ' by ' + book.author + '. ' + (book.progress?.percent ? Math.round(book.progress.percent) + ' percent read.' : '');
+  if (window.speechSynthesis) {
+    const utt = new SpeechSynthesisUtterance(text.slice(0, 500));
+    utt.rate = 0.9;
+    window.speechSynthesis.speak(utt);
+    return 'Reading ' + book.title + ' aloud.';
+  }
+  return 'Speech synthesis not available.';
+}
+window.startReadAloud = startReadAloud;
+
+// Mark a book as finished by voice.
+function markAsFinished(query) {
+  const book = books.find(b => (b.title + ' ' + b.author).toLowerCase().includes(String(query||'').toLowerCase()));
+  if (!book) return 'Could not find that book.';
+  book.status = 'finished';
+  book.progress = { percent: 100 };
+  // In full app would persist; here signal success.
+  return book.title + ' marked as finished.';
+}
+window.markAsFinished = markAsFinished;
+
+// List books on a named shelf.
+function booksOnShelf(shelfName) {
+  const shelf = shelves.find(s => s.name.toLowerCase().includes(String(shelfName||'').toLowerCase()));
+  if (!shelf) return 'No shelf named ' + shelfName + '.';
+  const onIt = books.filter(b => b.shelfId === shelf.id).slice(0, 5);
+  if (!onIt.length) return shelf.name + ' is empty.';
+  return 'On ' + shelf.name + ': ' + onIt.map(b => b.title).join(', ') + '.';
+}
+window.booksOnShelf = booksOnShelf;
 window.searchLibrary = searchLibrary;
 
 // "How much longer?" for the book on the Continue reading card, at the library tooltips' 1.5 minutes a page. From Grok.
