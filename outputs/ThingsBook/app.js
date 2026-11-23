@@ -351,7 +351,7 @@ function shelvesSummary() {
     const n = books.filter(b => b.shelf === s.id).length;
     return `${s.name} with ${plural(n, 'book')}`;
   });
-  return `You have ${plural(shelves.length, 'shelf')}: ${counts.join(', ')}.`;
+  return `You have ${shelves.length === 1 ? '1 shelf' : `${shelves.length} shelves`}: ${counts.join(', ')}.`;
 }
 window.shelvesSummary = shelvesSummary;
 
