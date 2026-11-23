@@ -8,7 +8,7 @@ assert(source.includes('window.randomUnfinishedBook = randomUnfinishedBook;'), '
 const from = source.indexOf('function randomUnfinishedBook(');
 const to = source.indexOf('window.randomUnfinishedBook = randomUnfinishedBook;') + 'window.randomUnfinishedBook = randomUnfinishedBook;'.length;
 const code = source.slice(from, to);
-const ask = (books, call) => { const context = {books, unfinishedPercent: b => Math.min(99, Math.round(b.progress?.percent || 0)), spokenBy: b => b.author ? ` by ${b.author}` : ''}; vm.createContext(context); vm.runInContext(code, context); return vm.runInContext(call, context); };
+const ask = (books, call) => { const context = {books, window: {}, unfinishedPercent: b => Math.min(99, Math.round(b.progress?.percent || 0)), spokenBy: b => b.author ? ` by ${b.author}` : ''}; vm.createContext(context); vm.runInContext(code, context); return vm.runInContext(call, context); };
 
 const library = [
   {title:'Dune', author:'Frank Herbert', status:'reading', progress:{percent:50}},
