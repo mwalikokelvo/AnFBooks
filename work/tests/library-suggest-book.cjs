@@ -7,7 +7,7 @@ const from = source.indexOf('function suggestBook()');
 assert(from > 0, 'suggestBook is in app.js');
 const code = source.slice(from, source.indexOf('function librarySummary()'));
 const ask = (books, call) => {
-  const context = { books, Math };
+  const context = { books, Math, window: {} };
   vm.createContext(context);
   vm.runInContext(code, context);
   return vm.runInContext(call, context);
