@@ -336,6 +336,17 @@ function estimatedTimeLeft() {
 window.estimatedTimeLeft = estimatedTimeLeft;
 
 // "How is my library doing?" in one sentence: books by status and the average progress. From Grok.
+
+// Suggest one unread or lightly started book, for a voice assistant.
+function suggestBook() {
+  const candidates = books.filter(b => b.status !== 'finished' && (b.progress?.percent || 0) < 20);
+  if (!candidates.length) return 'All your books are well underway or finished. Great progress.';
+  const pick = candidates[Math.floor(Math.random() * candidates.length)];
+  const pct = Math.round(pick.progress?.percent || 0);
+  return `How about ${pick.title} by ${pick.author}? You are ${pct} percent through it.`;
+}
+window.suggestBook = suggestBook;
+
 function librarySummary() {
   if (!books.length) return 'Your library is empty.';
   const count = status => books.filter(b => b.status === status).length;
