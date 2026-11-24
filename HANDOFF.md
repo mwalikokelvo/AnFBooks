@@ -1,5 +1,20 @@
 # AnF Books handoff
 
+## 2026-11-24 — Overnight night shift: Kevo voice suite + ThingsBook library reading answers
+
+- AnF (`grok/kevo-voice-suite-2026`, pushed): Kevo voice suite — coin flip/randomizer, spelling/NATO, audio sleep
+  timer + KEVO_ACTIONS/JarvisVoiceAgent wiring; two type fixes; `tsc --noEmit` clean; full suite 948/948 pass, 0 fail.
+- ThingsBook (`grok/library-pace-and-activity`, pushed + changelog line): library reading answers —
+  `window.readingPaceEstimate`, `window.readingStreakSummary`, `window.lastBookmarkSnippet` with tests in
+  `work/tests/library-reading-suite.cjs`; `node work/run-tests.cjs` 28 passed, 0 failed.
+- OmniRoute gateway restarted and healthy (v3.8.54); web-search/fetch used for research (Kevo, ElevenReader, Spotify, Siri AI).
+- Nothing critical broke; nothing pushed to `main`.
+
+### Where to start
+- Research queue: Google Assistant (retry), Alexa, Copilot, Mycroft/OVOS; run the REA behavior-recovery flow
+  (`npx rea-agents@latest setup`) on a chosen feature and list observable differences.
+- Feature queue: more Kevo capabilities; ThingsBook voice-first library features (voice search of the library, read-aloud resume).
+
 ## 2026-11-22 — Install test of AnF Books 1.16.0 on Windows PC
 
 Tested by Antigravity on the owner's Windows PC.
