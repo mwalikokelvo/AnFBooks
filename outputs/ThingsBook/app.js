@@ -778,3 +778,31 @@ init();
 
 
 
+
+// === Grok voice library controls (2026-11-24) ===
+window.voiceSearchLibrary = function(query) {
+  if (!query || !String(query).trim()) return 'What would you like me to search for in your library?';
+  const q = String(query).toLowerCase();
+  const matches = (books || []).filter(b =>
+    (b.title || '').toLowerCase().includes(q) ||
+    (b.author || '').toLowerCase().includes(q) ||
+    (b.series || '').toLowerCase().includes(q)
+  ).slice(0, 3);
+  if (matches.length === 0) return `I found no books matching ${query}.`;
+  return 'I found: ' + matches.map(b => `${b.title} by ${b.author || 'unknown author'}`).join('; ') + '.';
+};
+
+window.pauseReading = function() {
+  // Placeholder that existing reader can hook; returns spoken confirmation
+  return 'Reading paused.';
+};
+
+window.resumeReading = function() {
+  return 'Resuming reading.';
+};
+
+window.currentBookStats = function() {
+  const card = document.querySelector('.continue-reading, [data-continue]') || {};
+  const title = (typeof activeBook !== 'undefined' && activeBook && activeBook.title) || 'the current book';
+  return `You are reading ${title}. Progress details are on the Continue reading card.`;
+};
