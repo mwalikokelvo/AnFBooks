@@ -384,6 +384,58 @@ function shelvesSummary() {
 }
 window.shelvesSummary = shelvesSummary;
 
+// "Estimate reading time for Dune at 250 words per minute": Calculates reading duration. Inspired by ElevenReader.
+function readingPaceEstimate(query, wordsPerMinute) {
+  const wpm = Number.isFinite(Number(wordsPerMinute)) && Number(wordsPerMinute) > 0 ? Number(wordsPerMinute) : 250;
+  const q = String(query || '').trim();
+  const book = q ? booksMatching(q)[0] : lastBookInProgress();
+  if (!book) return q ? `I found no book matching "${q}" in your library.` : 'You have no books in progress.';
+  const pct = Math.min(100, book.progress?.percent || 0);
+  if (book.status === 'finished' || pct >= 100) return `You have already finished ${book.title}${spokenBy(book)}.`;
+  const pages = book.pages && pct < 100 ? book.pages * (100 - pct) / 100 : 0;
+  if (!pages) return `I cannot estimate reading pace for ${book.title}, because its page count is missing.`;
+  const remainingWords = Math.round(pages * 250);
+  const totalMinutes = Math.max(1, Math.round(remainingWords / wpm));
+  const hours = Math.floor(totalMinutes / 60), rest = totalMinutes % 60;
+  const spoken = [hours && plural(hours, 'hour'), rest && plural(rest, 'minute')].filter(Boolean).join(' ');
+  return `At ${wpm} words per minute, you have about ${spoken} left in ${book.title}${spokenBy(book)}.`;
+}
+window.readingPaceEstimate = readingPaceEstimate;
+
+// "What is my reading streak?" in one sentence: active reading sessions over the last 7 and 30 days. From Grok.
+function readingStreakSummary(nowMs = Date.now()) {
+  if (!books.length) return 'Your library is empty.';
+  const dayMs = 86400000;
+  const weekAgo = nowMs - 7 * dayMs;
+  const monthAgo = nowMs - 30 * dayMs;
+  const readThisWeek = books.filter(b => b.lastRead && b.lastRead >= weekAgo).length;
+  const finishedThisMonth = books.filter(b => b.status === 'finished' && b.lastRead && b.lastRead >= monthAgo).length;
+  if (!readThisWeek && !finishedThisMonth) {
+    return 'You have not read any books this week. Open a book to start a reading streak!';
+  }
+  const weekSpoken = readThisWeek ? `You read ${plural(readThisWeek, 'book')} this week` : 'No books read this week';
+  const monthSpoken = finishedThisMonth ? ` and finished ${plural(finishedThisMonth, 'book')} this month` : '';
+  return `${weekSpoken}${monthSpoken}. Keep up the momentum!`;
+}
+window.readingStreakSummary = readingStreakSummary;
+
+// "What was my last bookmark in Dune?" in one sentence: last excerpt, note, or progress snippet. From Grok.
+function lastBookmarkSnippet(query) {
+  const q = String(query || '').trim();
+  const book = q ? booksMatching(q)[0] : lastBookInProgress();
+  if (!book) return q ? `I found no book matching "${q}" in your library.` : 'You have no books in progress.';
+  const title = `${book.title}${spokenBy(book)}`;
+  if (book.excerpt) {
+    return `In ${title}, your last bookmark note is: "${book.excerpt.slice(0, 120)}".`;
+  }
+  if (book.notes && book.notes.trim()) {
+    return `In ${title}, your latest note is: "${book.notes.trim().slice(0, 120)}".`;
+  }
+  const pct = Math.round(book.progress?.percent || 0);
+  return `In ${title}, your last recorded position is ${pct} percent read.`;
+}
+window.lastBookmarkSnippet = lastBookmarkSnippet;
+
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
