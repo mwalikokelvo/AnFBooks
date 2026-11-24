@@ -384,6 +384,64 @@ function shelvesSummary() {
 }
 window.shelvesSummary = shelvesSummary;
 
+// Voice read-aloud of the current or selected book excerpt (Web Speech API, local). From Grok.
+function startReadAloud(query) {
+  const q = String(query || '').trim();
+  const book = q ? (booksMatching(q)[0] || books.find(b => (b.title + ' ' + (b.author || '')).toLowerCase().includes(q.toLowerCase()))) : lastBookInProgress();
+  if (!book) return 'No book found to read aloud.';
+  const text = book.excerpt || `${book.title}${spokenBy(book)}.${book.progress?.percent ? ` ${Math.round(book.progress.percent)} percent read.` : ''}`;
+  const Utterance = (typeof window !== 'undefined' && window.SpeechSynthesisUtterance) || (typeof SpeechSynthesisUtterance !== 'undefined' ? SpeechSynthesisUtterance : null);
+  if (typeof window !== 'undefined' && window.speechSynthesis && Utterance) {
+    const utt = new Utterance(text.slice(0, 500));
+    utt.rate = 0.9;
+    window.speechSynthesis.speak(utt);
+    return `Reading ${book.title} aloud.`;
+  }
+  return 'Speech synthesis not available.';
+}
+window.startReadAloud = startReadAloud;
+
+// Mark a book as finished by voice. From Grok.
+function markAsFinished(query) {
+  const q = String(query || '').trim();
+  if (!q) return 'Say the title or author of a book to mark as finished.';
+  const book = booksMatching(q)[0] || books.find(b => (b.title + ' ' + (b.author || '')).toLowerCase().includes(q.toLowerCase()));
+  if (!book) return `I found no book matching "${q}" in your library.`;
+  book.status = 'finished';
+  if (!book.progress) book.progress = {};
+  book.progress.percent = 100;
+  if (typeof updateBook === 'function') updateBook(book.id, {status: 'finished', progress: book.progress}).catch(() => {});
+  return `${book.title}${spokenBy(book)} marked as finished.`;
+}
+window.markAsFinished = markAsFinished;
+
+// List books on a named shelf. From Grok.
+function booksOnShelf(shelfName) {
+  const q = String(shelfName || '').trim();
+  if (!q) return 'Say the name of a shelf.';
+  const sName = q.toLowerCase();
+  const shelf = shelves.find(s => s.name && s.name.toLowerCase().includes(sName));
+  if (!shelf) return `No shelf named "${q}" found.`;
+  const onIt = books.filter(b => b.shelfId === shelf.id);
+  if (!onIt.length) return `${shelf.name} is empty.`;
+  const titles = onIt.slice(0, 5).map(b => b.title).join(', ');
+  const more = onIt.length > 5 ? ` and ${onIt.length - 5} more` : '';
+  return `On ${shelf.name}: ${titles}${more}.`;
+}
+window.booksOnShelf = booksOnShelf;
+
+// "What books do I have by Frank Herbert?" in one sentence. From Grok.
+function booksByAuthor(authorQuery) {
+  const q = String(authorQuery || '').trim();
+  if (!q) return 'Say an author to search your library.';
+  const byAuthor = books.filter(b => b.author && b.author.toLowerCase().includes(q.toLowerCase()));
+  if (!byAuthor.length) return `You have no books by ${q} in your library.`;
+  const titles = byAuthor.slice(0, 3).map(b => b.title).join(', ');
+  const more = byAuthor.length > 3 ? ` and ${byAuthor.length - 3} more` : '';
+  return `By ${byAuthor[0].author || q} you have ${titles}${more}.`;
+}
+window.booksByAuthor = booksByAuthor;
+
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.
