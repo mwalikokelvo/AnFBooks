@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Overnight night-shift additions: one-sentence library answers `window.readingPaceEstimate(query, wordsPerMinute)`
+  ("How much left in this book?"), `window.readingStreakSummary()` ("What is my reading streak?") and
+  `window.lastBookmarkSnippet(query)` ("What was my last bookmark in this book?"). For a voice assistant or
+  script, with tests in `work/tests/library-reading-suite.cjs`. From Grok.
 - `window.recommendBookFromLibrary()` suggests an unfinished book in one sentence: the best rated one (4 stars or more),
   or else one you tagged. For a voice assistant or a script. From Grok.
 - More one-sentence library answers for a voice assistant or a script, from Grok: `window.progressOnBook(query)`
