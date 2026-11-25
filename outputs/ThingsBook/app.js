@@ -355,7 +355,37 @@ function listUnfinished() {
   const list = unfinished.slice(0, 3).map(b => { const pct = unfinishedPercent(b); return `${b.title}${spokenBy(b)}, ${pct ? `${pct} percent read` : 'not started'}`; }).join('; ');
   return `You have ${plural(unfinished.length, 'unfinished book')}: ${list}${unfinished.length > 3 ? `; and ${unfinished.length - 3} more` : ''}.`;
 }
+
 window.listUnfinished = listUnfinished;
+
+// "Which books have I finished?" in one sentence. From Grok.
+function listFinished() {
+  const finished = books.filter(b => b.status === 'finished' || (b.progress?.percent || 0) >= 100)
+    .sort((a,b) => (b.lastRead || 0) - (a.lastRead || 0));
+  if (!finished.length) return books.length ? 'You have not finished any books yet.' : 'Your library is empty.';
+  const list = finished.slice(0, 3).map(b => `${b.title}${spokenBy(b)}`).join('; ');
+  return `You have finished ${plural(finished.length, 'book')}: ${list}${finished.length > 3 ? `; and ${finished.length - 3} more` : ''}.`;
+}
+window.listFinished = listFinished;
+
+// "Books by Author" in one sentence.
+function booksByAuthor(query) {
+  const matches = booksMatching(query).filter(b => b.author && b.author.toLowerCase().includes(String(query||'').toLowerCase()));
+  if (!matches.length) return `I could not find any books by ${query || 'that author'}.`;
+  const list = matches.slice(0, 3).map(b => b.title).join('; ');
+  return `Books by ${matches[0].author}: ${list}${matches.length > 3 ? `; and ${matches.length - 3} more` : ''}.`;
+}
+window.booksByAuthor = booksByAuthor;
+
+// "How many books did I finish this month?" simple count based on lastRead in current month.
+function finishedThisMonth() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const count = books.filter(b => (b.status === 'finished' || (b.progress?.percent || 0) >= 100) && (b.lastRead || 0) >= start).length;
+  return count ? `You finished ${plural(count, 'book')} this month.` : 'You have not finished any books this month yet.';
+}
+window.finishedThisMonth = finishedThisMonth;
+
 
 // "What should I read next?" in one sentence: the book on the Continue reading card, else the furthest-read
 // unfinished book with no read date (restored or synced), else the best rated, then most recently added, book you

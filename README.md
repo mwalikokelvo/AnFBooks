@@ -24,6 +24,7 @@ ThingsBook as before, and your library, backups and voice pack carry over.
   off until you enter a server, only the book's KOReader ID, page and percentage are sent, and the
   password is not stored.
 - **Helps you study:** bookmarks, highlights, notes, search across books (PDF text included),
+- **Voice library answers:** ask “what was I reading?”, “which books have I finished?”, “books by Author”, or “how many books did I finish this month?”.
   offline text recognition for scans, cross-book links, comparisons, flashcards and citations.
 - **Finds new books:** Project Gutenberg and OPDS catalogues.
 
