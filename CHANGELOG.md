@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Library voice features from Grok: `window.startReadAloud(query)` (local Web Speech read-aloud of current or queried book),
+  `window.markAsFinished(query)` (marks a book finished by voice), `window.booksOnShelf(shelfName)` (lists books on a named shelf),
+  and `window.booksByAuthor(query)` (lists books by a specified author).
 - `window.recommendBookFromLibrary()` suggests an unfinished book in one sentence: the best rated one (4 stars or more),
   or else one you tagged. For a voice assistant or a script. From Grok.
 - More one-sentence library answers for a voice assistant or a script, from Grok: `window.progressOnBook(query)`
