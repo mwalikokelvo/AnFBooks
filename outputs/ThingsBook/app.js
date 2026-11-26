@@ -442,6 +442,42 @@ function booksByAuthor(authorQuery) {
 }
 window.booksByAuthor = booksByAuthor;
 
+// Voice library search: "find books about space", "search library for Dune". From Grok.
+function voiceLibrarySearch(query) {
+  const q = String(query || '').trim().toLowerCase();
+  if (!q) return 'Say what you want to find in your library.';
+  const matches = books.filter(b =>
+    (b.title || '').toLowerCase().includes(q) ||
+    (b.author || '').toLowerCase().includes(q) ||
+    (b.tags || []).some(t => String(t).toLowerCase().includes(q))
+  ).slice(0, 5);
+  if (!matches.length) return `I found no books matching "${query}" in your library.`;
+  const list = matches.map(b => `${b.title}${b.author && b.author !== 'Unknown author' ? ' by ' + b.author : ''}`).join('; ');
+  return `I found ${matches.length} ${matches.length === 1 ? 'book' : 'books'}: ${list}.`;
+}
+window.voiceLibrarySearch = voiceLibrarySearch;
+
+// "How many books do I have?" / library stats. From Grok.
+function libraryStats() {
+  const total = books.length;
+  const finished = books.filter(b => b.status === 'finished' || b.progress?.percent === 100).length;
+  const inProgress = books.filter(b => b.lastRead && b.status !== 'finished' && (b.progress?.percent || 0) !== 100).length;
+  return `You have ${total} ${total === 1 ? 'book' : 'books'} in your library. ${finished} finished, ${inProgress} in progress.`;
+}
+window.libraryStats = libraryStats;
+
+// Reading progress voice helper. From Grok.
+function readingProgressVoice(query) {
+  const q = String(query || '').trim();
+  const book = q
+    ? books.filter(b => (b.title + ' ' + (b.author || '')).toLowerCase().includes(q.toLowerCase()))[0]
+    : lastBookInProgress();
+  if (!book) return 'No matching book found.';
+  const pct = Math.round(book.progress?.percent || 0);
+  return `${book.title} is ${pct} percent read.`;
+}
+window.readingProgressVoice = readingProgressVoice;
+
 function scheduleLibrarySearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;if(key)refreshLibrary();},120);}
 // Library sort orders. Text compares ignore case and accents and sort numbers naturally; books
 // missing the value (no year, no series…) go last in either direction.

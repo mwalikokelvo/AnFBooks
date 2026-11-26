@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Library voice style features from Grok: `window.voiceLibrarySearch(query)` (searches title, author or tags),
+  `window.libraryStats()` (total / finished / in-progress counts), and `window.readingProgressVoice(query)`
+  (progress of a named or current book). Fits a private book library with voice control.
 - Library voice features from Grok: `window.startReadAloud(query)` (local Web Speech read-aloud of current or queried book),
   `window.markAsFinished(query)` (marks a book finished by voice), `window.booksOnShelf(shelfName)` (lists books on a named shelf),
   and `window.booksByAuthor(query)` (lists books by a specified author).
