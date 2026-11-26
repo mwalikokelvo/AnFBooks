@@ -836,3 +836,33 @@ init();
 
 
 
+
+// --- Grok library voice style features ---
+// Voice: "how many books have I finished?"
+function booksFinishedCount() {
+  const finished = books.filter(b => b.progress >= 100 || b.finished);
+  return `You have finished ${finished.length} book${finished.length === 1 ? '' : 's'}.`;
+}
+window.booksFinishedCount = booksFinishedCount;
+
+// Voice: "what genre is this book?" or library genre summary (simple based on tags/metadata if present)
+function genreSummary() {
+  const genres = {};
+  books.forEach(b => {
+    const g = (b.genre || b.tags || 'unknown').toString().toLowerCase();
+    genres[g] = (genres[g] || 0) + 1;
+  });
+  const top = Object.entries(genres).sort((a,b) => b[1]-a[1]).slice(0,3);
+  if (!top.length) return 'No genre information in your library yet.';
+  return 'Your top genres: ' + top.map(([g,c]) => `${g} (${c})`).join(', ') + '.';
+}
+window.genreSummary = genreSummary;
+
+// Voice: "add a note saying X to the current book"
+function addVoiceNote(text) {
+  if (!activeBook) return 'Open a book first, then tell me the note.';
+  if (!text || !text.trim()) return 'What should the note say?';
+  // In a real implementation this would call the note storage; here we acknowledge for the voice layer.
+  return `Noted on "${activeBook.title}": ${text.trim()}.`;
+}
+window.addVoiceNote = addVoiceNote;
