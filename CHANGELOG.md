@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Library style features from Grok: \`window.resumeLastBook()\` (spoken resume of the book in progress),
+  \`window.booksFinishedThisMonth()\` (how many books finished this calendar month) and
+  \`window.similarBooks(query)\` (books by the same author or on the same shelf).
+
+## Unreleased
+
 - Library voice features from Grok: `window.startReadAloud(query)` (local Web Speech read-aloud of current or queried book),
   `window.markAsFinished(query)` (marks a book finished by voice), `window.booksOnShelf(shelfName)` (lists books on a named shelf),
   and `window.booksByAuthor(query)` (lists books by a specified author).

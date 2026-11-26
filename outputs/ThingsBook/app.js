@@ -322,6 +322,38 @@ function searchLibrary(query) {
   return `I found ${plural(found.length, 'book')}: ${list}${found.length > 3 ? `; and ${found.length - 3} more` : ''}.`;
 }
 window.searchLibrary = searchLibrary;
+// New library style features from Grok (2026-11-26)
+function resumeLastBook() {
+  const last = lastBookInProgress ? lastBookInProgress() : null;
+  if (!last) return "No book in progress to resume.";
+  // In real app this would open the reader; here we return the spoken reply
+  return "Resuming " + (last.title || "the book") + " where you left off.";
+}
+window.resumeLastBook = resumeLastBook;
+
+function booksFinishedThisMonth() {
+  const now = new Date();
+  const month = now.getMonth();
+  const year = now.getFullYear();
+  const finished = (books || []).filter(b => b.status === "finished" && b.lastRead && new Date(b.lastRead).getMonth() === month && new Date(b.lastRead).getFullYear() === year);
+  return finished.length ? "You finished " + finished.length + " book" + (finished.length > 1 ? "s" : "") + " this month: " + finished.map(b => b.title).join(", ") + "." : "You have not finished any books this month yet.";
+}
+window.booksFinishedThisMonth = booksFinishedThisMonth;
+
+function similarBooks(query) {
+  if (!query) return "Which book should I find similar ones for?";
+  const q = query.toLowerCase();
+  const match = (books || []).find(b => (b.title || "").toLowerCase().includes(q) || (b.author || "").toLowerCase().includes(q));
+  if (!match) return "I could not find that book in your library.";
+  const sameAuthor = (books || []).filter(b => b.id !== match.id && (b.author || "").toLowerCase() === (match.author || "").toLowerCase());
+  const sameShelf = (books || []).filter(b => b.id !== match.id && b.shelfId === match.shelfId);
+  const suggestions = [...sameAuthor, ...sameShelf].slice(0, 3);
+  if (!suggestions.length) return "No similar books found for " + match.title + ".";
+  return "Books similar to " + match.title + ": " + suggestions.map(b => b.title + " by " + (b.author || "unknown")).join(", ") + ".";
+}
+window.similarBooks = similarBooks;
+
+
 
 // "How much longer?" for the book on the Continue reading card, at the library tooltips' 1.5 minutes a page. From Grok.
 function estimatedTimeLeft() {
