@@ -430,6 +430,31 @@ function booksOnShelf(shelfName) {
 }
 window.booksOnShelf = booksOnShelf;
 
+/** "What was I reading yesterday?" or last session details for voice. */
+function lastReadDetails() {
+  const last = window.lastOpenedBook || null;
+  if (!last) return "You have not opened any book recently.";
+  return `You were last reading ${last.title} by ${last.author || "unknown"}, at ${last.progress || 0}%`;
+}
+window.lastReadDetails = lastReadDetails;
+
+/** Reading streak: consecutive days with progress. */
+function readingStreak() {
+  const days = window.readingDays || 0;
+  return days > 0 ? `You have a ${days}-day reading streak. Keep it up!` : "No reading streak yet. Open a book today to start one.";
+}
+window.readingStreak = readingStreak;
+
+/** Voice bookmark: "bookmark this page" stores current position. */
+function voiceBookmark(note = "Voice bookmark") {
+  const current = window.currentBookPosition || null;
+  if (!current) return "No book is open to bookmark.";
+  // In real impl: persist to vault. Stub for now.
+  return `Bookmarked "${current.title}" at page ${current.page || "unknown"} with note: ${note}`;
+}
+window.voiceBookmark = voiceBookmark;
+
+
 // "What books do I have by Frank Herbert?" in one sentence. From Grok.
 function booksByAuthor(authorQuery) {
   const q = String(authorQuery || '').trim();
