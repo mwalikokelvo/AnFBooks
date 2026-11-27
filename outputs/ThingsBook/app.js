@@ -336,6 +336,32 @@ function estimatedTimeLeft() {
 window.estimatedTimeLeft = estimatedTimeLeft;
 
 // "How is my library doing?" in one sentence: books by status and the average progress. From Grok.
+
+// Voice/style helpers added by Grok branch
+function booksOnShelfNamed(name) {
+  const n = (name || '').toLowerCase().trim();
+  if (!n) return [];
+  return books.filter(b => (b.shelf || '').toLowerCase().includes(n));
+}
+window.booksOnShelfNamed = booksOnShelfNamed;
+
+function readingStats() {
+  const total = books.length;
+  const finished = books.filter(b => b.status === 'finished' || b.progress?.percent === 100).length;
+  const inProgress = books.filter(b => b.lastRead && b.status !== 'finished' && (b.progress?.percent || 0) < 100).length;
+  const pages = books.reduce((s, b) => s + (b.pages || 0), 0);
+  return `Library has ${total} books, ${finished} finished, ${inProgress} in progress, about ${pages} pages total.`;
+}
+window.readingStats = readingStats;
+
+function booksFinishedRecently(days = 7) {
+  const cutoff = Date.now() - days * 86400000;
+  const recent = books.filter(b => b.status === 'finished' && b.finishedAt && b.finishedAt > cutoff);
+  if (recent.length === 0) return `No books finished in the last ${days} days.`;
+  return `Finished in the last ${days} days: ` + recent.map(b => b.title || 'Untitled').join(', ') + '.';
+}
+window.booksFinishedRecently = booksFinishedRecently;
+
 function librarySummary() {
   if (!books.length) return 'Your library is empty.';
   const count = status => books.filter(b => b.status === status).length;
