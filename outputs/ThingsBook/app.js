@@ -836,3 +836,46 @@ init();
 
 
 
+
+
+// Grok library style features (2026-11-26)
+// 1. Reading streak: consecutive days with progress
+window.readingStreak = function() {
+  const days = new Set();
+  books.forEach(b => {
+    if (b.lastRead) {
+      const d = new Date(b.lastRead).toISOString().slice(0, 10);
+      days.add(d);
+    }
+  });
+  // Simple streak from today backwards
+  let streak = 0;
+  let cur = new Date();
+  for (let i = 0; i < 365; i++) {
+    const key = cur.toISOString().slice(0, 10);
+    if (days.has(key)) streak++;
+    else break;
+    cur.setDate(cur.getDate() - 1);
+  }
+  return `You have a ${streak}-day reading streak.`;
+};
+
+// 2. What was I reading last: more detail than progress
+window.whatWasIReading = function() {
+  const last = lastBookInProgress ? lastBookInProgress() : null;
+  if (!last) return 'No recent reading session found.';
+  const pages = last.progress?.page || 0;
+  const pct = last.progress?.percent || 0;
+  return `Last you were reading ${last.title} by ${last.author || 'unknown'}, about page ${pages} (${pct} percent).`;
+};
+
+// 3. Reader theme cycle: light / sepia / dark (persists in localStorage)
+window.cycleReaderTheme = function() {
+  const themes = ['light', 'sepia', 'dark'];
+  const current = localStorage.getItem('readerTheme') || 'light';
+  const next = themes[(themes.indexOf(current) + 1) % themes.length];
+  localStorage.setItem('readerTheme', next);
+  document.documentElement.setAttribute('data-reader-theme', next);
+  // Simple CSS vars would be applied in reader.css
+  return `Reader theme set to ${next}.`;
+};

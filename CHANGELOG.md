@@ -1,5 +1,8 @@
 # Changelog
 
+- Grok library style features: window.readingStreak(), window.whatWasIReading(), window.cycleReaderTheme() for streak, last session detail, and reader theme cycle.
+
+
 ## Unreleased
 
 - Library voice features from Grok: `window.startReadAloud(query)` (local Web Speech read-aloud of current or queried book),
