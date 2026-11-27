@@ -291,6 +291,45 @@ function recommendBookFromLibrary() {
 }
 window.recommendBookFromLibrary = recommendBookFromLibrary;
 
+// Voice search the library: "search library for X" or "find books by author Y"
+function voiceSearchLibrary(query) {
+  const matches = booksMatching(query);
+  if (!matches.length) return `I found no books matching "${query}".`;
+  const top = matches.slice(0, 3).map(b => {
+    const pct = Math.round(b.progress?.percent || 0);
+    return `${b.title} by ${b.author || 'unknown'} (${pct} percent)`;
+  }).join('; ');
+  return `I found ${matches.length} book${matches.length > 1 ? 's' : ''}: ${top}.`;
+}
+window.voiceSearchLibrary = voiceSearchLibrary;
+
+// Time left estimate based on progress and a default reading speed (approx 200 words/page or progress percent)
+function timeLeftInBook(titleQuery) {
+  const matches = booksMatching(titleQuery || '');
+  const book = matches[0] || lastBookInProgress();
+  if (!book) return 'No book in progress to estimate time left.';
+  const pct = book.progress?.percent || 0;
+  if (pct >= 100) return `${book.title} is finished.`;
+  // Rough: assume average book 300 pages, 2 min/page remaining proportional
+  const remainingPct = 100 - pct;
+  const estMinutes = Math.round((remainingPct / 100) * 600); // 10 hours for full book
+  const hours = Math.floor(estMinutes / 60);
+  const mins = estMinutes % 60;
+  return `About ${hours} hours and ${mins} minutes left in ${book.title}.`;
+}
+window.timeLeftInBook = timeLeftInBook;
+
+// Books on a shelf, spoken
+function booksOnShelf(shelfName) {
+  const shelf = shelves.find(s => s.name.toLowerCase().includes(shelfName.toLowerCase()));
+  if (!shelf) return `No shelf named "${shelfName}".`;
+  const onIt = books.filter(b => b.shelf === shelf.id);
+  if (!onIt.length) return `The shelf "${shelf.name}" is empty.`;
+  const titles = onIt.slice(0, 5).map(b => b.title).join(', ');
+  return `On ${shelf.name}: ${titles}${onIt.length > 5 ? ` and ${onIt.length - 5} more` : ''}.`;
+}
+window.booksOnShelf = booksOnShelf;
+
 // The book a spoken query names: an exact title first, else a title, author or series containing it,
 // the most recently read first. Used by the voice and script answers below.
 function booksMatching(query) {
