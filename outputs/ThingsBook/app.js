@@ -323,6 +323,37 @@ function searchLibrary(query) {
 }
 window.searchLibrary = searchLibrary;
 
+// New: "How many books did I finish this month?"
+function booksFinishedThisMonth() {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const finished = books.filter(b => b.status === 'finished' && (b.finishedAt || b.lastRead || 0) >= monthStart);
+  return `You finished ${plural(finished.length, 'book')} this month.`;
+}
+window.booksFinishedThisMonth = booksFinishedThisMonth;
+
+// New: "Put Dune on the Science fiction shelf"
+function assignBookToShelf(bookQuery, shelfName) {
+  const book = booksMatching(bookQuery)[0];
+  if (!book) return `No book matching "${bookQuery}".`;
+  const shelf = shelves.find(s => s.name.toLowerCase().includes(shelfName.toLowerCase()));
+  if (!shelf) return `No shelf matching "${shelfName}".`;
+  book.shelfId = shelf.id;
+  // Persist would happen in real app via save
+  return `Moved ${book.title} to the ${shelf.name} shelf.`;
+}
+window.assignBookToShelf = assignBookToShelf;
+
+// New: "What's my average progress?"
+function averageProgress() {
+  const reading = books.filter(b => b.progress?.percent && b.status !== 'finished');
+  if (!reading.length) return 'No books in progress.';
+  const avg = Math.round(reading.reduce((s, b) => s + (b.progress.percent || 0), 0) / reading.length);
+  return `Your average progress on unfinished books is ${avg} percent.`;
+}
+window.averageProgress = averageProgress;
+
+
 // "How much longer?" for the book on the Continue reading card, at the library tooltips' 1.5 minutes a page. From Grok.
 function estimatedTimeLeft() {
   const recent = lastBookInProgress();
