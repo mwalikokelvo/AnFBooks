@@ -384,6 +384,33 @@ function shelvesSummary() {
 }
 window.shelvesSummary = shelvesSummary;
 
+// Voice: books by genre or tag. From Grok.
+function booksByGenre(genre) {
+  const g = String(genre || '').toLowerCase();
+  const matches = books.filter(b => (b.genre || b.tags || '').toLowerCase().includes(g));
+  if (!matches.length) return `No books tagged ${genre || 'that genre'}.`;
+  return `Found ${matches.length} in ${genre}: ${matches.slice(0, 3).map(b => b.title).join(', ')}.`;
+}
+window.booksByGenre = booksByGenre;
+
+// Voice: reading statistics summary. From Grok.
+function readingStats() {
+  const total = books.length;
+  const finished = books.filter(b => b.status === 'finished').length;
+  const inProgress = books.filter(b => b.progress?.percent > 0 && b.status !== 'finished').length;
+  return `Library: ${total} books, ${finished} finished, ${inProgress} in progress.`;
+}
+window.readingStats = readingStats;
+
+// Voice: mark current book as favorite. From Grok.
+function markFavorite(query) {
+  const book = query ? booksMatching(query)[0] : lastBookInProgress();
+  if (!book) return 'No book to mark as favorite.';
+  book.favorite = true;
+  return `${book.title} marked as favorite.`;
+}
+window.markFavorite = markFavorite;
+
 // Voice read-aloud of the current or selected book excerpt (Web Speech API, local). From Grok.
 function startReadAloud(query) {
   const q = String(query || '').trim();
