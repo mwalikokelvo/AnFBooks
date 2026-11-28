@@ -356,6 +356,46 @@ function listUnfinished() {
   return `You have ${plural(unfinished.length, 'unfinished book')}: ${list}${unfinished.length > 3 ? `; and ${unfinished.length - 3} more` : ''}.`;
 }
 window.listUnfinished = listUnfinished;
+// "Who do I read most?" — most frequent author among books with progress or finished.
+function mostReadAuthor() {
+  if (!books.length) return 'Your library is empty.';
+  const counts = {};
+  for (const b of books) {
+    const a = (b.author || 'Unknown author').trim();
+    if (a === 'Unknown author') continue;
+    counts[a] = (counts[a] || 0) + (b.progress?.percent || 0) / 100 + (b.status === 'finished' ? 1 : 0);
+  }
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  if (!top) return 'No authors with progress yet.';
+  return `You have read the most by ${top[0]}.`;
+}
+window.mostReadAuthor = mostReadAuthor;
+
+// "How is the Dune series going?" — progress across books matching a series name.
+function seriesProgress(query) {
+  const q = String(query || '').toLowerCase().trim();
+  if (!q) return 'Which series?';
+  const inSeries = books.filter(b => b.series && b.series.toLowerCase().includes(q));
+  if (!inSeries.length) return `No books found in a series matching "${query}".`;
+  const finished = inSeries.filter(b => b.status === 'finished' || (b.progress?.percent || 0) >= 100).length;
+  const total = inSeries.length;
+  const avg = Math.round(inSeries.reduce((s, b) => s + (b.progress?.percent || 0), 0) / total);
+  return `In the ${inSeries[0].series} series: ${finished} of ${total} books finished, average progress ${avg} percent.`;
+}
+window.seriesProgress = seriesProgress;
+
+// "Bookmark this page" spoken helper — records a note with current progress if available.
+function voiceBookmark(bookQuery, note) {
+  const matches = booksMatching(bookQuery || '');
+  const book = matches[0] || lastBookInProgress();
+  if (!book) return 'No book found to bookmark.';
+  const text = (note || 'Voice bookmark').trim();
+  book.notes = ((book.notes || '') + '\n[Voice] ' + text).trim();
+  // Persist would happen via existing save path; this updates the in-memory model for the session.
+  return `Bookmarked "${text}" on ${book.title}.`;
+}
+window.voiceBookmark = voiceBookmark;
+
 
 // "What should I read next?" in one sentence: the book on the Continue reading card, else the furthest-read
 // unfinished book with no read date (restored or synced), else the best rated, then most recently added, book you
